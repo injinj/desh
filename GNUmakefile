@@ -43,7 +43,7 @@ CFLAGS ?= $(default_cflags)
 #CFLAGS ?= $(RPM_OPT_FLAGS)
 cflags := $(gcc_wflags) $(CFLAGS) $(arch_cflags)
 
-INCLUDES    ?= -Iinclude -Ilinecook/include -Ilibdecnumber
+INCLUDES    ?= -Iinclude
 includes    := $(INCLUDES)
 DEFINES     ?=
 defines     := $(DEFINES)
@@ -52,8 +52,9 @@ sock_lib    :=
 math_lib    := -lm
 thread_lib  := -pthread -lrt
 lc_lib      := linecook/$(libd)/liblinecook.a
-dec_lib     := libdecnumber/libdecnumber.a
+dec_lib     := libdecnumber/$(libd)/libdecnumber.a
 lnk_lib     := $(lc_lib) $(dec_lib)
+dlnk_lib    := -Llinecook/$(libd) -llinecook -Llibdecnumber/$(libd) -ldecnumber
 malloc_lib  :=
 
 # targets filled in below
@@ -79,6 +80,10 @@ common_files  := access closure conv dict eval except fd gc glob \
 		 sigmsgs signal split status str syntax term token tree util \
 		 var vec version y.tab
 all_files     := $(common_files) main initial dump
+input_includes   := -Ilinecook/include
+decimal_includes := -Ilibdecnumber/include \
+                    -Ilibdecnumber/include/libdecnumber \
+		    -Ilibdecnumber
 
 common_objs := $(addprefix $(objd)/, $(addsuffix .o, $(common_files)))
 common_dbjs := $(addprefix $(objd)/, $(addsuffix .fpic.o, $(common_files)))
@@ -87,7 +92,7 @@ all_depends += $(addprefix $(dependd)/, $(addsuffix .fpic.d, $(all_files)))
 
 libdesh_objs := $(objd)/initial.o $(common_objs)
 libdesh_dbjs := $(objd)/initial.fpic.o $(common_dbjs)
-libdesh_dlnk := -Llinecook/$(libd) -llinecook -Llibdecnumber -ldecnumber
+libdesh_dlnk := $(dlnk_lib)
 libdesh_spec := $(version)-$(build_num)
 libdesh_ver  := $(major_num).$(minor_num)
 
@@ -97,8 +102,8 @@ $(libd)/libdesh.so: $(libdesh_dbjs)
 all_libs += $(libd)/libdesh.a $(libd)/libdesh.so
 
 desh_objs := $(objd)/main.fpic.o
-desh_libs := $(libd)/libdesh.so linecook/$(libd)/liblinecook.so
-desh_lnk  := -ldesh -Llinecook/$(libd) -llinecook
+desh_libs := $(libd)/libdesh.so
+desh_lnk  := -ldesh $(dlnk_lib)
 $(bind)/desh: $(desh_objs) $(desh_libs)
 
 src/y.tab.c include/es/token.h: src/parse.y
@@ -112,9 +117,8 @@ src/initial.c: $(bind)/esdump script/initial.es
 src/sigmsgs.c: /usr/include/bits/signum-generic.h
 	script/mksignal < /usr/include/bits/signum-generic.h > src/sigmsgs.c
 
-esdump_lnk := linecook/$(libd)/liblinecook.a $(dec_lib)
-
 esdump_objs := $(objd)/dump.o $(objd)/main.o $(common_objs) 
+esdump_lnk  := $(lnk_lib)
 $(bind)/esdump: $(esdump_objs) $(esdump_lnk)
 
 all_exes += $(bind)/desh

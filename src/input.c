@@ -3,6 +3,7 @@
 
 #include <es/es.h>
 #include <es/input.h>
+#include <es/var.h>
 
 #include <stdint.h>
 #include <fcntl.h>
@@ -148,27 +149,81 @@ static int eoffill(Input *in) {
 	return EOF;
 }
 
+typedef struct {
+  LineCook *lc;
+  int count;
+} VarsCompleteClosure;
+
+static void
+scan_dict_fn_complete( void *cl,  char *key,  void *value )
+{
+  if ( strncmp( "fn-", key, 3 ) == 0 ) {
+    VarsCompleteClosure *vc = (VarsCompleteClosure *) cl;
+    vc->count++;
+    lc_add_completion( (LineCook *) vc->lc, 'e', &key[ 3 ],
+                       strlen( &key[ 3 ] ) );
+  }
+}
+
+static void
+scan_dict_env_complete( void *cl,  char *key,  void *value )
+{
+  VarsCompleteClosure *vc = (VarsCompleteClosure *) cl;
+  char   tmpkey[ 1024 ];
+  size_t len = 0;
+
+  if ( strncmp( "fn-", key, 3 ) != 0 ) {
+    len = strlen( key );
+    if ( ++len < sizeof( tmpkey ) ) {
+      tmpkey[ 0 ] = '$';
+      strcpy( &tmpkey[ 1 ], key );
+      key = tmpkey;
+    }
+  }
+  else if ( strncmp( "fn-$", key, 4 ) == 0 ) {
+    key = &key[ 3 ];
+    len = strlen( key );
+  }
+  if ( len > 0 ) {
+    vc->count++;
+    lc_add_completion( (LineCook *) vc->lc, 'v', key, len );
+  }
+}
+
 static int
 tty_complete( LineCook *lc,  const char *buf,  size_t off,  size_t len,
               int comp_type )
 {
+  int count = 0;
   if ( comp_type == 0 ) { /* if any completion type */
-    if ( off == 0 )
+    VarsCompleteClosure cl;
+    cl.lc    = lc;
+    cl.count = 0;
+    /* if first arg, or { precedes the offset */
+    if ( off == 0 || ( off > 0 && buf[ off - 1 ] == '{' ) ) {
+      dictforall( vars, scan_dict_fn_complete, &cl );
+      count += cl.count;
       comp_type = 'e'; /* 1st argument, use exe completion */
+    }
+    else if ( len > 0 && buf[ off ] == '$' ) {
+      dictforall( vars, scan_dict_env_complete, &cl );
+      return cl.count; /* no need to continue $env completion */
+      //comp_type = 'v';
+    }
     /* if command starts with 'cd ', use directory completion */
     else if ( off + len >= 2 && buf[ 0 ] == 'c' && buf[ 1 ] == 'd' ) {
       if ( off + len == 2 || buf[ 2 ] == ' ' )
         comp_type = 'd';
     }
   }
-  return lc_tty_file_completion( lc, buf, off, len, comp_type );
+  return count + lc_tty_file_completion( lc, buf, off, len, comp_type );
 }
 
 static int
 tty_init( Input *in )
 {
   const char * brk = " \t\n\\'`><=;|&{()}",
-             * qc  = " \t\n\\\"'@<>=;|&()#$`?*[!:{~";
+             * qc  = " \t\n\\\"'@<>=;|&()#$`?*[!:{";
 
   lc  = lc_create_state( 80, 25 );
   tty = lc_tty_create( lc );

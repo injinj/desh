@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <es/decimal.h>
-#define DECNUMDIGITS 36
-#include <bid/decimal128.h>
+#define DECNUMDIGITS 64
+#include <libdecnumber/bid/decimal128.h>
 
 void
 es_dec128_itod( Dec128Store *fp,  int i )
