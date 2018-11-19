@@ -35,7 +35,7 @@ soflag      := -shared
 ifdef DEBUG
 default_cflags := -ggdb
 else
-default_cflags := -ggdb
+default_cflags := -O3 -ggdb
 endif
 # rpmbuild uses RPM_OPT_FLAGS
 CFLAGS ?= $(default_cflags)
@@ -60,16 +60,15 @@ malloc_lib  :=
 # targets filled in below
 all_exes    :=
 all_libs    :=
-all_dlls    :=
 all_depends :=
 gen_files   :=
-major_num   := 0
-minor_num   := 9
-patch_num   := 1
-build_num   := 1
+major_num   := 1
+minor_num   := 0
+patch_num   := 0
+build_num   := 2
 version     := $(major_num).$(minor_num).$(patch_num)
 ver_build   := $(version)-$(build_num)
-defines     := -DES_VER=$(ver_build)
+version_defines := -DDESH_VER=$(ver_build)
 
 .PHONY: everything
 everything: $(lc_lib) $(dec_lib) all
@@ -83,7 +82,7 @@ all_files     := $(common_files) main initial dump
 input_includes   := -Ilinecook/include
 decimal_includes := -Ilibdecnumber/include \
                     -Ilibdecnumber/include/libdecnumber \
-		    -Ilibdecnumber
+		    -I/usr/include/libdecnumber
 
 common_objs := $(addprefix $(objd)/, $(addsuffix .o, $(common_files)))
 common_dbjs := $(addprefix $(objd)/, $(addsuffix .fpic.o, $(common_files)))
@@ -128,14 +127,24 @@ all_dirs := $(bind) $(libd) $(objd) $(dependd)
 gen_files += src/sigmsgs.c src/y.tab.c include/es/token.h
 
 $(lc_lib):
-	$(MAKE) -C linecook
+	if [ -d linecook ] ; then \
+	  $(MAKE) -C linecook ; \
+	else \
+	  mkdir -p `dirname $(lc_lib)` ; \
+	  ln -s /usr/lib64/liblinecook.* `dirname $(lc_lib)` ; \
+	fi
 
 $(dec_lib):
-	$(MAKE) -C libdecnumber
+	if [ -d libdecnumber ] ; then \
+	  $(MAKE) -C libdecnumber ; \
+	else \
+	  mkdir -p `dirname $(dec_lib)` ; \
+	  ln -s /usr/lib64/libdecnumber.* `dirname $(dec_lib)` ; \
+	fi
 
 # the default targets
 .PHONY: all
-all: $(gen_files) $(all_libs) $(all_dlls) $(all_exes)
+all: $(gen_files) $(all_libs) $(all_exes)
 
 # create directories
 $(dependd):
@@ -156,7 +165,17 @@ $(dependd)/depend.make: $(dependd) $(all_depends)
 	@cat $(all_depends) >> $(dependd)/depend.make
 
 .PHONY: dist_bins
-dist_bins: $(all_libs) $(bind)/desh
+dist_bins: $(gen_files) $(all_libs) $(bind)/desh
+
+.PHONY: dist_rpm
+dist_rpm:
+	mkdir -p rpmbuild/{RPMS,SRPMS,BUILD,SOURCES,SPECS}
+	sed -e "s/99999/${build_num}/" \
+	    -e "s/999.999/${version}/" < rpm/desh.spec > rpmbuild/SPECS/desh.spec
+	mkdir -p rpmbuild/SOURCES/desh-${version}
+	ln -sf ../../../src ../../../script ../../../include ../../../GNUmakefile ../../../CHANGES ../../../README ../../../es.1 rpmbuild/SOURCES/desh-${version}/
+	( cd rpmbuild/SOURCES && tar chzf desh-${ver_build}.tar.gz --exclude=".*.sw*" desh-${version} && rm -r -f desh-${version} )
+	( cd rpmbuild && rpmbuild --define "-topdir `pwd`" -ba SPECS/desh.spec )
 
 # dependencies made by 'make depend'
 -include $(dependd)/depend.make

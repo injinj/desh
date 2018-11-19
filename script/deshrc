@@ -1,0 +1,332 @@
+# /etc/deshrc
+# This is read for interactive shells
+#
+# Order of profile loading:
+#   /etc/deshenv       # all shell starts
+#   ~/.deshenv
+#   /etc/deshprofile   # only login shell starts
+#   ~/.deshprofile
+#   /etc/deshrc        # only interactive shell starts
+#   ~/.deshrc
+
+# imply:
+# prepends arguments to subsequent execution
+#
+# if this is 'imply'ed
+# imply cmd -bongo
+#
+# then if this is entered:
+# cmd hello
+#
+# it causes this to execute:
+# cmd -bongo hello
+#
+fn imply {
+  let ((cmd args) = $*) {
+    let (cmd2 = _{%whatis $cmd}) {
+      fn $cmd {
+        $cmd2 $args $*
+      }
+    }
+  }
+}
+
+#
+# alias
+# renames a command to another command
+#
+# alias ls ls '--color=auto'
+#
+# is equivalent to
+#
+# imply ls '--color=auto'
+#
+fn alias {
+  let ((name cmd args) = $*) {
+    let (cmd2 = _{%whatis $cmd}) {
+      fn $name {
+        $cmd2 $args $*
+      }
+    }
+  }
+}
+
+#
+# fgcolor
+# returns the ansi escape code for a color
+#
+# this should display hello world in red:
+#
+# echo _{fgcolor Red} hello world _{fgcolor}
+#
+# color pallete for 8-bit here:
+# https://en.wikipedia.org/wiki/ANSI_escape_code
+#
+# 8-bit is 256 colors, all of the predefined 38;5;X are on this pallete
+# 24-bit is RGB based
+#
+fn fgcolor {
+  let (ESC = \033) {
+    if {~ $1 'Black'}            { return $ESC ^ '[30m'
+    }  {~ $1 'Red'}              { return $ESC ^ '[31m'
+    }  {~ $1 'Green'}            { return $ESC ^ '[32m'
+    }  {~ $1 'Yellow'}           { return $ESC ^ '[33m'
+    }  {~ $1 'Blue'}             { return $ESC ^ '[34m'
+    }  {~ $1 'Magenta'}          { return $ESC ^ '[35m'
+    }  {~ $1 'Cyan'}             { return $ESC ^ '[36m'
+    }  {~ $1 'White'}            { return $ESC ^ '[37m'
+    }  {~ $1 'NavyBlue'}         { return $ESC ^ '[38;5;17m'
+    }  {~ $1 'DarkBlue'}         { return $ESC ^ '[38;5;18m'
+    }  {~ $1 'DarkGreen'}        { return $ESC ^ '[38;5;22m'
+    }  {~ $1 'DarkCyan'}         { return $ESC ^ '[38;5;36m'
+    }  {~ $1 'LightSeaGreen'}    { return $ESC ^ '[38;5;37m'
+    }  {~ $1 'DarkTurquoise'}    { return $ESC ^ '[38;5;44m'
+    }  {~ $1 'DarkRed'}          { return $ESC ^ '[38;5;52m'
+    }  {~ $1 'BlueViolet'}       { return $ESC ^ '[38;5;57m'
+    }  {~ $1 'SteelBlue'}        { return $ESC ^ '[38;5;67m'
+    }  {~ $1 'CornflowerBlue'}   { return $ESC ^ '[38;5;69m'
+    }  {~ $1 'CadetBlue'}        { return $ESC ^ '[38;5;72m'
+    }  {~ $1 'MediumTurquoise'}  { return $ESC ^ '[38;5;80m'
+    }  {~ $1 'DarkRed'}          { return $ESC ^ '[38;5;88m'
+    }  {~ $1 'DarkMagenta'}      { return $ESC ^ '[38;5;90m'
+    }  {~ $1 'DarkViolet'}       { return $ESC ^ '[38;5;92m'
+    }  {~ $1 'Purple'}           { return $ESC ^ '[38;5;93m'
+    }  {~ $1 'LightSlateGrey'}   { return $ESC ^ '[38;5;103m'
+    }  {~ $1 'MediumPurple'}     { return $ESC ^ '[38;5;104m'
+    }  {~ $1 'LightSlateBlue'}   { return $ESC ^ '[38;5;105m'
+    }  {~ $1 'DarkSeaGreen'}     { return $ESC ^ '[38;5;108m'
+    }  {~ $1 'LightGreen'}       { return $ESC ^ '[38;5;120m'
+    }  {~ $1 'MediumVioletRed'}  { return $ESC ^ '[38;5;126m'
+    }  {~ $1 'DarkViolet'}       { return $ESC ^ '[38;5;128m'
+    }  {~ $1 'IndianRed'}        { return $ESC ^ '[38;5;131m'
+    }  {~ $1 'MediumOrchid'}     { return $ESC ^ '[38;5;134m'
+    }  {~ $1 'DarkGoldenrod'}    { return $ESC ^ '[38;5;136m'
+    }  {~ $1 'RosyBrown'}        { return $ESC ^ '[38;5;138m'
+    }  {~ $1 'DarkKhaki'}        { return $ESC ^ '[38;5;143m'
+    }  {~ $1 'LightSteelBlue'}   { return $ESC ^ '[38;5;147m'
+    }  {~ $1 'GreenYellow'}      { return $ESC ^ '[38;5;154m'
+    }  {~ $1 'Orchid'}           { return $ESC ^ '[38;5;170m'
+    }  {~ $1 'Violet'}           { return $ESC ^ '[38;5;177m'
+    }  {~ $1 'Tan'}              { return $ESC ^ '[38;5;180m'
+    }  {~ $1 'HotPink'}          { return $ESC ^ '[38;5;206m'
+    }  {~ $1 'DarkOrange'}       { return $ESC ^ '[38;5;208m'
+    }  {~ $1 'SandyBrown'}       { return $ESC ^ '[38;5;215m'
+    }  {~ $1 'Grey'}             { return $ESC ^ '[38;5;244m'
+    }  {~ $1 '8-bit'} {
+      let (c = $2) {
+        return $ESC ^ '[38;5;' ^ $c ^ 'm'
+      }
+    }  {~ $1 '24-bit'} {
+      let (r = $2; g = $3; b = $4) {
+        return $ESC ^ '[38;2;' ^ $r ^ ';' ^ $g ^ ';' ^ $b ^ 'm'
+      }
+    }  {~ $1 'BrightBlack'}   { return $ESC ^ '[90m'
+    }  {~ $1 'BrightRed'}     { return $ESC ^ '[91m'
+    }  {~ $1 'BrightGreen'}   { return $ESC ^ '[92m'
+    }  {~ $1 'BrightYellow'}  { return $ESC ^ '[93m'
+    }  {~ $1 'BrightBlue'}    { return $ESC ^ '[94m'
+    }  {~ $1 'BrightMagenta'} { return $ESC ^ '[95m'
+    }  {~ $1 'BrightCyan'}    { return $ESC ^ '[96m'
+    }  {~ $1 'BrightWhite'}   { return $ESC ^ '[97m'
+    }                         { return $ESC ^ '[0m' }
+  }
+}
+
+# prompt[ 0 ] is primary proomt;  2 lines, tty and time are right justified
+# <user>@<host>:<pwd>                                <tty> <time>
+# [hist#]; ls
+# prompt[ 1 ] is secondary prompt for line continuations
+# prompt[ 2 ] is vi insert mode
+# prompt[ 3 ] is vi command mode
+# prompt[ 4 ] is emacs mode
+# prompt[ 5 ] is search mode
+# prompt[ 6 ] is TAB complete mode
+# prompt[ 7 ] is visual select mode
+# prompt[ 8 ] is ouch / bell
+# prompt[ 9 ] is left select cursor
+# prompt[ 10 ] is right select cursor
+fn set_prompt_256 {
+  # used to turn color escape off, normal text mode
+  let (NO_COLOR      = _{fgcolor}
+       # some colors used below
+       USER_COLOR    = _{fgcolor 'LightSlateBlue'}
+       HOST_COLOR    = _{fgcolor 'BrightYellow'}
+       PWD_COLOR     = _{fgcolor 'Green'}
+       PROMPT2_COLOR = _{fgcolor 'Orchid'}
+       HIST_COLOR    = _{fgcolor 'BrightCyan'}
+       TTY_COLOR     = _{fgcolor 'MediumPurple'}
+       TIME_COLOR    = _{fgcolor 'DarkGoldenrod'}
+       INS_COLOR     = _{fgcolor 'BrightGreen'}
+       CMD_COLOR     = _{fgcolor 'Magenta'}
+       EMACS_COLOR   = _{fgcolor 'BrightGreen'}
+       SRCH_COLOR    = _{fgcolor 'Cyan'}
+       COMP_COLOR    = _{fgcolor 'Magenta'}
+       VISU_COLOR    = _{fgcolor 'Cyan'}
+       OUCH_COLOR    = _{fgcolor 'BrightRed'}
+       SEL1_COLOR    = _{fgcolor 'HotPink'}
+       SEL2_COLOR    = _{fgcolor 'HotPink'}) {
+
+
+  prompt = ( $USER_COLOR    ^ '\u'   ^ $NO_COLOR ^ '@'  ^
+             $HOST_COLOR    ^ '\h'   ^ $NO_COLOR ^ ':'  ^
+             $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
+             $TTY_COLOR     ^ '\l'   ^ $NO_COLOR ^ ' '  ^
+             $TIME_COLOR    ^ '\@'   ^ $NO_COLOR ^ '\n' ^
+             $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
+             $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
+             $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
+             $CMD_COLOR     ^ '|=c'  ^ $NO_COLOR
+             $EMACS_COLOR   ^ '<-e'  ^ $NO_COLOR
+             $SRCH_COLOR    ^ '/_?'  ^ $NO_COLOR
+             $COMP_COLOR    ^ 'TAB'  ^ $NO_COLOR
+             $VISU_COLOR    ^ '[-]'  ^ $NO_COLOR
+             $OUCH_COLOR    ^ '?@&!' ^ $NO_COLOR
+             $SEL1_COLOR    ^ '['    ^ $NO_COLOR
+             $SEL2_COLOR    ^ ']'    ^ $NO_COLOR )
+  }
+}
+
+fn set_prompt_16 {
+  # used to turn color escape off, normal text mode
+  let (NO_COLOR      = _{fgcolor}
+       # some colors used below
+       USER_COLOR    = _{fgcolor 'Cyan'}
+       HOST_COLOR    = _{fgcolor 'Magenta'}
+       PWD_COLOR     = _{fgcolor 'Green'}
+       PROMPT2_COLOR = _{fgcolor 'Cyan'}
+       HIST_COLOR    = _{fgcolor 'Cyan'}
+       TTY_COLOR     = _{fgcolor 'Cyan'}
+       TIME_COLOR    = _{fgcolor 'Cyan'}
+       INS_COLOR     = _{fgcolor 'Green'}
+       CMD_COLOR     = _{fgcolor 'Magenta'}
+       EMACS_COLOR   = _{fgcolor 'Green'}
+       SRCH_COLOR    = _{fgcolor 'Cyan'}
+       COMP_COLOR    = _{fgcolor 'Magenta'}
+       VISU_COLOR    = _{fgcolor 'Cyan'}
+       OUCH_COLOR    = _{fgcolor 'Red'}
+       SEL1_COLOR    = _{fgcolor 'Red'}
+       SEL2_COLOR    = _{fgcolor 'Red'}) {
+
+
+  prompt = ( $USER_COLOR    ^ '\u'   ^ $NO_COLOR ^ '@'  ^
+             $HOST_COLOR    ^ '\h'   ^ $NO_COLOR ^ ':'  ^
+             $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
+             $TTY_COLOR     ^ '\l'   ^ $NO_COLOR ^ ' '  ^
+             $TIME_COLOR    ^ '\@'   ^ $NO_COLOR ^ '\n' ^
+             $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
+             $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
+             $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
+             $CMD_COLOR     ^ '|=c'  ^ $NO_COLOR
+             $EMACS_COLOR   ^ '<-e'  ^ $NO_COLOR
+             $SRCH_COLOR    ^ '/_?'  ^ $NO_COLOR
+             $COMP_COLOR    ^ 'TAB'  ^ $NO_COLOR
+             $VISU_COLOR    ^ '[-]'  ^ $NO_COLOR
+             $OUCH_COLOR    ^ '?@&!' ^ $NO_COLOR
+             $SEL1_COLOR    ^ '['    ^ $NO_COLOR
+             $SEL2_COLOR    ^ ']'    ^ $NO_COLOR )
+  }
+}
+
+fn set_prompt_nocolor {
+  prompt = ( '\u@\h:\w\R\l \@\n[\!]; '
+             '> '
+             '<-i'
+             '|=c'
+             '<-e'
+             '/_?'
+             'TAB'
+             '[-]'
+             '?@&!'
+             '['
+             ']' )
+}
+
+howmanycolors = `{tput colors}
+if {$howmanycolors :ge 16} {
+  if {$howmanycolors :ge 256} {
+    set_prompt_256
+  } {
+    set_prompt_16
+  }
+  # use ls colors
+  imply ls '--color=auto' -aFC
+  # use grep colors
+  imply grep '--color=auto'
+} {
+  set_prompt_nocolor
+}
+
+#
+# shorten pwd to ~/dir if inside home
+#
+# compares dirname of pwd recursively until no more pwd left
+# if:
+# pwd  = /home/user/subdir
+# home = /home/user
+# returns ~/subdir
+#
+fn shorten_pwd_home {
+  let ((pwd home) = $*) {
+    # if no more path left to match
+    if {~ $pwd '/'} {
+      return ''
+    }
+    let (dir = `{dirname $pwd}; file = `{basename $pwd}) {
+      # if dir prefix matches home
+      if {~ $dir $home} {
+        return '~/' ^ $file
+      }
+      # otherwise match one directory up
+      return _{shorten_pwd_home $dir $home} ^ '/' ^ $file
+    }
+  }
+}
+
+# init these if not set already
+if {~ $#USER 0} {USER = `{whoami}}
+if {~ $#HOSTNAME 0} {HOSTNAME = `{hostname -s}}
+PWD = `{pwd}
+
+#
+# calls shorten_pwd_home with PWD and HOME
+#
+fn get_short_pwd {
+  if {~ $#HOME 0} {
+    # if no home set
+    return $PWD
+  }
+  if {~ $PWD $HOME} {
+    # if already in home dir
+    return '~'
+  }
+  # recursively match pwd with home
+  return _{shorten_pwd_home $PWD $HOME}
+}
+
+# set the title of the terminal
+fn get_xterm_title {
+  let (BEL = \007; SHORTPWD = _{get_short_pwd}; XTITLE = \033 ^ ']0;') {
+    return $XTITLE ^ $USER     ^ '@' ^
+                     $HOSTNAME ^ ':' ^
+                     $SHORTPWD ^ $BEL
+  }
+}
+
+# make 'cd' set the xterm title
+let (cd = _{%whatis cd}) {
+  fn cd {
+    if {$cd $*} {
+      PWD = `{pwd}
+      if {~ $TERM xterm*} {
+        echo  -n _{get_xterm_title}
+      }
+    }
+  }
+}
+# set the title now
+if {~ $TERM xterm*} {
+  echo  -n _{get_xterm_title}
+}
+
+# load the history and log new commands of interactive prompt to this file
+history = ~/.desh_history

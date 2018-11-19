@@ -1,6 +1,37 @@
 CHANGES		-*- mode: indented-text -*- ($Revision: 1.4 $)
 =======
 
+0.9jobc branch to 1.0 fork
+--------------------------
+
+Forked job control branch, which adds ctrl-z suspend/bg of jobs (from Olaf
+Rogalsky).  Renamed 'es' to 'desh' as I don't expect these changes to be merged
+into es mainline.
+
+Reads /etc/deshenv, ~/.deshenv always;  /etc/deshprofile, ~/.deshprofile
+on login shell, /etc/deshrc, ~/.deshrc on interactive shell (from NixOS).
+
+Added linecook command line editor and history management (which defaults to
+~/.desh_history).
+
+Added _{} as an alias for <={}.
+
+Added :gt, :lt, :ge, :ge, :eq, :ne operators, %cmp primative. These operate
+numerically if both args are numbers and lexically if not (from XS).
+
+Added %sum, %diff, %mul, %div, %pow, %neg, %log, %log10, %floor, %round,
+%isinf, %isnan primitives, which operate on lists of numbers.  Ex, count
+to 10:
+
+  let (x = 0) { while {$x :lt 10} {echo $x ; x = _{%sum $x 1} ; } }
+
+Added libdecnumber for the math behind the above numbers.  It is a IEEE
+754-2008 library forked from gcc (IBM and Intel authored).  The 128 bit decimal
+math parts are used here, which gives about 34 decimal places and remembers the
+precision of values.  There is never ambiguity of numeric conversions since the
+binary representation is equivalent to decimal strings, which humans like to
+use.
+
 0.9-alpha2 to 0.9beta
 ---------------------
 

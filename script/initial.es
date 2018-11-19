@@ -753,7 +753,8 @@ if {~ <=$&primitives resetterminal} {
 
 home		= /
 ifs		= ' ' \t \n
-prompt		= '; ' '' '<-' '|='
+# prompts are:  normal p2  vi-ins vi-cmd emacs search tab visual ouch  select
+prompt		= '\u@\h:\w; ' '> ' '<-i' '|=c' '<-e' '/_?' 'TAB' '[-]' '!@!1&' '[' ']'
 max-eval-depth	= 640
 
 #	noexport lists the variables that are not exported.  It is not

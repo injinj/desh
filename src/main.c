@@ -71,20 +71,20 @@ static void runstartup(char *filename) {
 	}
 }
 /* from Nix OS */
-/* runesenv -- run /etc/esenv and $HOME/.esenv, if each exists */
-static void runesenv(void) {
+/* runenv -- run /etc/env and $HOME/.env, if each exists */
+static void runenv(void) {
   runstartup(str("/etc/"SHNAME"env"));
   runstartup(str("%L/."SHNAME"env", varlookup("home", NULL), "\001"));
 }
 
-/* runesprofile -- run /etc/esprofile and $HOME/.esprofile, if each exists */
-static void runesprofile(void) {
+/* runprofile -- run /etc/profile and $HOME/.profile, if each exists */
+static void runprofile(void) {
   runstartup(str("/etc/"SHNAME"profile"));
   runstartup(str("%L/."SHNAME"profile", varlookup("home", NULL), "\001"));
 }
 
-/* runesrc -- run /etc/esrc and $HOME/.esrc, if each exists */
-static void runesrc(void) {
+/* runrc -- run /etc/rc and $HOME/.rc, if each exists */
+static void runrc(void) {
   runstartup(str("/etc/"SHNAME"rc"));
   runstartup(str("%L/."SHNAME"rc", varlookup("home", NULL), "\001"));
 }
@@ -211,13 +211,13 @@ getopt_done:
 		initenv(environ, protected);
 	
 	        /* Nix OS init */
-		runesenv();
+		runenv();
 
 		if (loginshell)
-			runesprofile();
+			runprofile();
 
 		if ((runflags & run_interactive) > 0)
-			runesrc();
+			runrc();
 
 		if (cmd == NULL && !cmd_stdin && optind < ac) {
 			int fd;
