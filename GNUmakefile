@@ -127,7 +127,7 @@ gen_files += src/sigmsgs.c src/y.tab.c include/es/token.h
 # if sub modules initialized, use those, otherwise use installed
 # (git submodule update --init --recursive)
 $(lc_lib):
-	if [ -d linecook ] ; then \
+	if [ -d linecook && -f linecook/GNUmakefile ] ; then \
 	  $(MAKE) -C linecook ; \
 	else \
 	  mkdir -p `dirname $(lc_lib)` ; \
@@ -135,7 +135,7 @@ $(lc_lib):
 	fi
 
 $(dec_lib):
-	if [ -d libdecnumber ] ; then \
+	if [ -d libdecnumber && -f libdecnumber/GNUmakefile ] ; then \
 	  $(MAKE) -C libdecnumber ; \
 	else \
 	  mkdir -p `dirname $(dec_lib)` ; \
