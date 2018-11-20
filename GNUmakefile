@@ -57,21 +57,19 @@ lnk_lib     := $(lc_lib) $(dec_lib)
 dlnk_lib    := -Llinecook/$(libd) -llinecook -Llibdecnumber/$(libd) -ldecnumber
 malloc_lib  :=
 
+# before include, that has srpm target
+.PHONY: everything
+everything: $(lc_lib) $(dec_lib) all
+
+# version vars
+-include .copr/Makefile
+
 # targets filled in below
 all_exes    :=
 all_libs    :=
 all_depends :=
 gen_files   :=
-major_num   := 1
-minor_num   := 0
-patch_num   := 0
-build_num   := 2
-version     := $(major_num).$(minor_num).$(patch_num)
-ver_build   := $(version)-$(build_num)
 version_defines := -DDESH_VER=$(ver_build)
-
-.PHONY: everything
-everything: $(lc_lib) $(dec_lib) all
 
 common_files  := access closure conv dict eval except fd gc glob \
                  glom input heredoc list match open opt prim-ctl prim-etc \
@@ -126,6 +124,8 @@ all_dirs := $(bind) $(libd) $(objd) $(dependd)
 
 gen_files += src/sigmsgs.c src/y.tab.c include/es/token.h
 
+# if sub modules initialized, use those, otherwise use installed
+# (git submodule update --init --recursive)
 $(lc_lib):
 	if [ -d linecook ] ; then \
 	  $(MAKE) -C linecook ; \
@@ -168,13 +168,7 @@ $(dependd)/depend.make: $(dependd) $(all_depends)
 dist_bins: $(gen_files) $(all_libs) $(bind)/desh
 
 .PHONY: dist_rpm
-dist_rpm:
-	mkdir -p rpmbuild/{RPMS,SRPMS,BUILD,SOURCES,SPECS}
-	sed -e "s/99999/${build_num}/" \
-	    -e "s/999.999/${version}/" < rpm/desh.spec > rpmbuild/SPECS/desh.spec
-	mkdir -p rpmbuild/SOURCES/desh-${version}
-	ln -sf ../../../src ../../../script ../../../include ../../../GNUmakefile ../../../CHANGES ../../../README ../../../es.1 rpmbuild/SOURCES/desh-${version}/
-	( cd rpmbuild/SOURCES && tar chzf desh-${ver_build}.tar.gz --exclude=".*.sw*" desh-${version} && rm -r -f desh-${version} )
+dist_rpm: srpm
 	( cd rpmbuild && rpmbuild --define "-topdir `pwd`" -ba SPECS/desh.spec )
 
 # dependencies made by 'make depend'

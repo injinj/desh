@@ -10,7 +10,12 @@ Source0:	%{name}-%{version}-99999.tar.gz
 BuildRoot:	${_tmppath}
 BuildArch:      x86_64
 Prefix:	        /usr
-Requires:       linecook libdecnumber
+BuildRequires:  gcc-c++
+BuildRequires:  byacc
+BuildRequires:  linecook
+BuildRequires:  libdecnumber
+Requires:       linecook
+Requires:       libdecnumber
 
 %description
 An experimental shell derived from es and rc.
@@ -61,5 +66,5 @@ rm -f /usr/share/man/man1/desh.1
 ldconfig
 
 %changelog
-* Tue Nov 19 2018 <gchrisanderson@gmail.com>
-- Test RPM build
+* __DATE__ <gchrisanderson@gmail.com>
+- Hello world
