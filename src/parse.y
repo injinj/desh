@@ -3,9 +3,9 @@
 %{
 /* Some yaccs insist on including stdlib.h */
 /*#define _STDLIB_H*/
-#include <es/es.h>
-#include <es/input.h>
-#include <es/syntax.h>
+#include <desh/es.h>
+#include <desh/input.h>
+#include <desh/syntax.h>
 %}
 
 %token	WORD QWORD
