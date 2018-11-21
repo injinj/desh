@@ -23,7 +23,7 @@ Added %sum, %diff, %mul, %div, %pow, %neg, %log, %log10, %floor, %round,
 %isinf, %isnan primitives, which operate on lists of numbers.  Ex, count
 to 10:
 
-  let (x = 0) { while {$x :lt 10} {echo $x ; x = _{%sum $x 1} ; } }
+  let (x = 0) { while {$x :lt 10} {echo $x ; x = <={%sum $x 1} ; } }
 
 Added libdecnumber for the math behind the above numbers.  It is a IEEE
 754-2008 library forked from gcc (IBM and Intel authored).  The 128 bit decimal

@@ -1,3 +1,47 @@
+# Readme for desh
+
+## desh
+
+This is an experimental shell that I use.  It is a forked version of the es job
+control branch, described below.  I changed the the name to desh to because it
+is currently has shell features which are not compatible with es.
+
+The main thing that is changed between desh and es is that the readline library
+is no longer used.  Another command line editor called linecook is used
+instead.  The linecook interface with the user has similarities with readline,
+but it is not api compatible with it.
+
+The linecook library is the primary reason desh exists.  I am using desh to
+test and advance features in linecook.  The major reason that I chose this
+particular branch of this code base is because it has job control, which means
+that ctrl-z will suspend the currently executing job.
+
+Other differences:
+
+1. Added :gt, :lt, :ge, :ge, :eq, :ne operators, %cmp primative. These operate
+   numerically if both args are numbers and lexically if not (from XS).
+
+2. Added %sum, %diff, %mul, %div, %pow, %neg, %log, %log10, %floor, %round,
+   %isinf, %isnan primitives, which operate on lists of numbers.
+
+3. Added libdecnumber for the math behind the above numbers.  It is a IEEE
+   754-2008 library forked from gcc (IBM and Intel authored).  The 128 bit
+   decimal math parts are used here, which gives about 34 decimal places and
+   remembers the precision of values.  There is never ambiguity of numeric
+   conversions since the binary representation is equivalent to decimal
+   strings, which humans like to use.
+
+Be sure to visit these pages:
+
+1. [es](https://wryun.github.io/es-shell/) -- this is the home page for es, it
+   describes the lineage and links to several academic papers.
+
+2. [XS](https://github.com/TieDyedDevil/XS) -- this is the fork of es which
+   incorporates the Boehm garbage collector.  The GC parts of es is one of the
+   major pieces of it's architecture.
+
+## es 0.9
+
 This is the README file for es, version 0.9-beta1
 
 I include the original README file below.  See the CHANGES file for 
@@ -8,6 +52,9 @@ to date.
 Soren Dayton
 csdayton@cs.uchicago.edu
 
+## Original es readme
+
+(the links are mostly dead)
 
 Es is an extensible shell.  The language was derived from the Plan 9
 shell, rc, and was influenced by functional programming languages,
@@ -68,7 +115,7 @@ There is a mailing list for discussing es.  Send mail to
 
 	es-request@hawkwind.utcs.toronto.edu
 
-to join the list.  The list itself is
+to join the list.  The list itself is <sub id="ml">[1](#ml)</sup>
 
 	es@hawkwind.utcs.toronto.edu
 
@@ -79,3 +126,6 @@ We would appreciate it if any distributions do credit the authors.
 Enjoy!
 
 -- Paul Haahr & Byron Rakitzis
+
+<b id="ml">1</b>: I believe the mailing list has migrated to a [google
+  group](https://groups.google.com/forum/#!forum/es-shell)

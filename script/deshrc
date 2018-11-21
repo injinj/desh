@@ -23,7 +23,7 @@
 #
 fn imply {
   let ((cmd args) = $*) {
-    let (cmd2 = _{%whatis $cmd}) {
+    let (cmd2 = <={%whatis $cmd}) {
       fn $cmd {
         $cmd2 $args $*
       }
@@ -43,7 +43,7 @@ fn imply {
 #
 fn alias {
   let ((name cmd args) = $*) {
-    let (cmd2 = _{%whatis $cmd}) {
+    let (cmd2 = <={%whatis $cmd}) {
       fn $name {
         $cmd2 $args $*
       }
@@ -57,7 +57,7 @@ fn alias {
 #
 # this should display hello world in red:
 #
-# echo _{fgcolor Red} hello world _{fgcolor}
+# echo <={fgcolor Red} hello world <={fgcolor}
 #
 # color pallete for 8-bit here:
 # https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -147,24 +147,24 @@ fn fgcolor {
 # prompt[ 10 ] is right select cursor
 fn set_prompt_256 {
   # used to turn color escape off, normal text mode
-  let (NO_COLOR      = _{fgcolor}
+  let (NO_COLOR      = <={fgcolor}
        # some colors used below
-       USER_COLOR    = _{fgcolor 'LightSlateBlue'}
-       HOST_COLOR    = _{fgcolor 'BrightYellow'}
-       PWD_COLOR     = _{fgcolor 'Green'}
-       PROMPT2_COLOR = _{fgcolor 'Orchid'}
-       HIST_COLOR    = _{fgcolor 'BrightCyan'}
-       TTY_COLOR     = _{fgcolor 'MediumPurple'}
-       TIME_COLOR    = _{fgcolor 'DarkGoldenrod'}
-       INS_COLOR     = _{fgcolor 'BrightGreen'}
-       CMD_COLOR     = _{fgcolor 'Magenta'}
-       EMACS_COLOR   = _{fgcolor 'BrightGreen'}
-       SRCH_COLOR    = _{fgcolor 'Cyan'}
-       COMP_COLOR    = _{fgcolor 'Magenta'}
-       VISU_COLOR    = _{fgcolor 'Cyan'}
-       OUCH_COLOR    = _{fgcolor 'BrightRed'}
-       SEL1_COLOR    = _{fgcolor 'HotPink'}
-       SEL2_COLOR    = _{fgcolor 'HotPink'}) {
+       USER_COLOR    = <={fgcolor 'LightSlateBlue'}
+       HOST_COLOR    = <={fgcolor 'BrightYellow'}
+       PWD_COLOR     = <={fgcolor 'Green'}
+       PROMPT2_COLOR = <={fgcolor 'Orchid'}
+       HIST_COLOR    = <={fgcolor 'BrightCyan'}
+       TTY_COLOR     = <={fgcolor 'MediumPurple'}
+       TIME_COLOR    = <={fgcolor 'DarkGoldenrod'}
+       INS_COLOR     = <={fgcolor 'BrightGreen'}
+       CMD_COLOR     = <={fgcolor 'Magenta'}
+       EMACS_COLOR   = <={fgcolor 'BrightGreen'}
+       SRCH_COLOR    = <={fgcolor 'Cyan'}
+       COMP_COLOR    = <={fgcolor 'Magenta'}
+       VISU_COLOR    = <={fgcolor 'Cyan'}
+       OUCH_COLOR    = <={fgcolor 'BrightRed'}
+       SEL1_COLOR    = <={fgcolor 'HotPink'}
+       SEL2_COLOR    = <={fgcolor 'HotPink'}) {
 
 
   prompt = ( $USER_COLOR    ^ '\u'   ^ $NO_COLOR ^ '@'  ^
@@ -188,24 +188,24 @@ fn set_prompt_256 {
 
 fn set_prompt_16 {
   # used to turn color escape off, normal text mode
-  let (NO_COLOR      = _{fgcolor}
+  let (NO_COLOR      = <={fgcolor}
        # some colors used below
-       USER_COLOR    = _{fgcolor 'Cyan'}
-       HOST_COLOR    = _{fgcolor 'Magenta'}
-       PWD_COLOR     = _{fgcolor 'Green'}
-       PROMPT2_COLOR = _{fgcolor 'Cyan'}
-       HIST_COLOR    = _{fgcolor 'Cyan'}
-       TTY_COLOR     = _{fgcolor 'Cyan'}
-       TIME_COLOR    = _{fgcolor 'Cyan'}
-       INS_COLOR     = _{fgcolor 'Green'}
-       CMD_COLOR     = _{fgcolor 'Magenta'}
-       EMACS_COLOR   = _{fgcolor 'Green'}
-       SRCH_COLOR    = _{fgcolor 'Cyan'}
-       COMP_COLOR    = _{fgcolor 'Magenta'}
-       VISU_COLOR    = _{fgcolor 'Cyan'}
-       OUCH_COLOR    = _{fgcolor 'Red'}
-       SEL1_COLOR    = _{fgcolor 'Red'}
-       SEL2_COLOR    = _{fgcolor 'Red'}) {
+       USER_COLOR    = <={fgcolor 'Cyan'}
+       HOST_COLOR    = <={fgcolor 'Magenta'}
+       PWD_COLOR     = <={fgcolor 'Green'}
+       PROMPT2_COLOR = <={fgcolor 'Cyan'}
+       HIST_COLOR    = <={fgcolor 'Cyan'}
+       TTY_COLOR     = <={fgcolor 'Cyan'}
+       TIME_COLOR    = <={fgcolor 'Cyan'}
+       INS_COLOR     = <={fgcolor 'Green'}
+       CMD_COLOR     = <={fgcolor 'Magenta'}
+       EMACS_COLOR   = <={fgcolor 'Green'}
+       SRCH_COLOR    = <={fgcolor 'Cyan'}
+       COMP_COLOR    = <={fgcolor 'Magenta'}
+       VISU_COLOR    = <={fgcolor 'Cyan'}
+       OUCH_COLOR    = <={fgcolor 'Red'}
+       SEL1_COLOR    = <={fgcolor 'Red'}
+       SEL2_COLOR    = <={fgcolor 'Red'}) {
 
 
   prompt = ( $USER_COLOR    ^ '\u'   ^ $NO_COLOR ^ '@'  ^
@@ -277,7 +277,7 @@ fn shorten_pwd_home {
         return '~/' ^ $file
       }
       # otherwise match one directory up
-      return _{shorten_pwd_home $dir $home} ^ '/' ^ $file
+      return <={shorten_pwd_home $dir $home} ^ '/' ^ $file
     }
   }
 }
@@ -300,12 +300,12 @@ fn get_short_pwd {
     return '~'
   }
   # recursively match pwd with home
-  return _{shorten_pwd_home $PWD $HOME}
+  return <={shorten_pwd_home $PWD $HOME}
 }
 
 # set the title of the terminal
 fn get_xterm_title {
-  let (BEL = \007; SHORTPWD = _{get_short_pwd}; XTITLE = \033 ^ ']0;') {
+  let (BEL = \007; SHORTPWD = <={get_short_pwd}; XTITLE = \033 ^ ']0;') {
     return $XTITLE ^ $USER     ^ '@' ^
                      $HOSTNAME ^ ':' ^
                      $SHORTPWD ^ $BEL
@@ -313,19 +313,19 @@ fn get_xterm_title {
 }
 
 # make 'cd' set the xterm title
-let (cd = _{%whatis cd}) {
+let (cd = <={%whatis cd}) {
   fn cd {
     if {$cd $*} {
       PWD = `{pwd}
       if {~ $TERM xterm*} {
-        echo  -n _{get_xterm_title}
+        echo  -n <={get_xterm_title}
       }
     }
   }
 }
 # set the title now
 if {~ $TERM xterm*} {
-  echo  -n _{get_xterm_title}
+  echo  -n <={get_xterm_title}
 }
 
 # load the history and log new commands of interactive prompt to this file
