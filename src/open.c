@@ -2,7 +2,7 @@
 
 #define	REQUIRE_FCNTL	1
 
-#include <es/es.h>
+#include <desh/es.h>
 
 #if NeXT
 extern int open(const char *, int, ...);

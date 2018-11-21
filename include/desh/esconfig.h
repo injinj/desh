@@ -188,16 +188,6 @@ extern "C" {
  *	please send new configurations to haahr@adobe.com and byron@netapp.com
  */
 
-#include <es/config.h>
-
-#if HAVE_SIGRELSE && HAVE_SIGHOLD
-# define SYSV_SIGNALS 1
-#endif
-
-#if HAVE_LIBREADLINE || HAVE_LIBEDITLINE
-# define READLINE 1
-#endif
-
 /* NeXT defaults */
 
 #if NeXT
@@ -369,11 +359,6 @@ extern "C" {
 #define	GCINFO			1
 #define	GCPROTECT		1
 #define	GCVERBOSE		1
-#endif
-
-#if HAVE_SIGACTION
-#undef	SYSV_SIGNALS
-#define	SYSV_SIGNALS		0
 #endif
 
 #ifdef __cplusplus

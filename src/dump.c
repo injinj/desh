@@ -1,8 +1,8 @@
 /* dump.c -- dump es's internal state as a c program ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/var.h>
-#include <es/term.h>
+#include <desh/es.h>
+#include <desh/var.h>
+#include <desh/term.h>
 
 #define	MAXVARNAME 20
 
@@ -242,7 +242,7 @@ static void printheader(List *title) {
 	)
 		panic("dumpstate: Tree union sizes do not match struct sizes");
 
-	print("/* %L */\n\n#include <es/es.h>\n#include <es/term.h>\n\n", title, " ");
+	print("/* %L */\n\n#include <desh/es.h>\n#include <desh/term.h>\n\n", title, " ");
 	print("%s\n\n", PPSTRING(TreeTypes));
 }
 

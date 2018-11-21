@@ -2,8 +2,8 @@
 
 #define	GARBAGE_COLLECTOR	1	/* for es.h */
 
-#include <es/es.h>
-#include <es/gc.h>
+#include <desh/es.h>
+#include <desh/gc.h>
 
 #define	ALIGN(n)	(((n) + sizeof (void *) - 1) &~ (sizeof (void *) - 1))
 
@@ -23,14 +23,6 @@ struct Space {
 #if GCPROTECT
 #define	NSPACES		10
 #endif
-
-#if HAVE_SYSCONF
-# ifndef _SC_PAGESIZE
-#  undef HAVE_SYSCONF
-#  define HAVE_SYSCONF 0
-# endif
-#endif
-
 
 /* globals */
 Root *rootlist;
@@ -129,20 +121,13 @@ static void revalidate(void *p, size_t n) {
 
 #include <sys/mman.h>
 
-static int pagesize;
+static size_t pagesize;
 #define	PAGEROUND(n)	((n) + pagesize - 1) &~ (pagesize - 1)
 
 /* take -- allocate memory for a space */
 static void *take(size_t n) {
 	caddr_t addr;
-#ifdef MAP_ANONYMOUS
 	addr = mmap(0, n, PROT_READ|PROT_WRITE,	MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-#else
-	static int devzero = -1;
-	if (devzero == -1)
-		devzero = eopen("/dev/zero", oOpen);
-	addr = mmap(0, n, PROT_READ|PROT_WRITE, MAP_PRIVATE, devzero, 0);
-#endif
 	if (addr == (caddr_t) -1)
 		panic("mmap: %s", esstrerror(errno));
 	memset(addr, 0xA5, n);
@@ -169,11 +154,7 @@ static void revalidate(void *p, size_t n) {
 
 /* initmmu -- initialization for memory management calls */
 static void initmmu(void) {
-#if HAVE_SYSCONF
 	pagesize = sysconf(_SC_PAGESIZE);
-#else
-	pagesize = getpagesize();
-#endif
 }
 
 #endif	/* !__MACH__ */
@@ -650,8 +631,8 @@ static char *tree2name(NodeKind k) {
 		Assoc table[1];		/* variable length */
 	};
 
-#include <es/var.h>
-#include <es/term.h>
+#include <desh/var.h>
+#include <desh/term.h>
 
 
 static size_t dump(Tag *t, void *p) {

@@ -2,8 +2,7 @@
 #ifndef __es__es_h__
 #define __es__es_h__
 
-#include <es/config.h>
-#include <es/stdenv.h>
+#include <desh/stdenv.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -144,7 +143,7 @@ extern List *sortlist(List *list);
 
 /* tree.c */
 
-extern Tree *mk(NodeKind VARARGS);
+extern Tree *mk(NodeKind, ...);
 
 
 /* closure.c */
@@ -257,16 +256,16 @@ extern void initconv(void);
 
 /* print.c -- see print.h for more */
 
-extern int print(const char *fmt VARARGS);
-extern int eprint(const char *fmt VARARGS);
-extern int fprint(int fd, const char *fmt VARARGS);
-extern noreturn panic(const char *fmt VARARGS);
+extern int print(const char *fmt, ...);
+extern int eprint(const char *fmt, ...);
+extern int fprint(int fd, const char *fmt, ...);
+extern noreturn panic(const char *fmt, ...);
 
 
 /* str.c */
 
-extern char *str(const char *fmt VARARGS);	/* create a gc space string by printing */
-extern char *mprint(const char *fmt VARARGS);	/* create an ealloc space string by printing */
+extern char *str(const char *fmt, ...);	/* create a gc space string by printing */
+extern char *mprint(const char *fmt, ...);	/* create an ealloc space string by printing */
 extern StrList *mkstrlist(char *, StrList *);
 
 
@@ -457,32 +456,11 @@ static inline void DoRef( Root *r, void *p, void *ini ) {
   DoRefAdd( r, p );
 }
 
-static inline void DoRefArray( Root *r, void *p, int len, void *ini ) {
-  int i;
-  for ( i = 0; i < len; i++ )
-    DoRef( &r[ i ], &((void **) p)[ i ], ini );
-}
-
 static inline void DoRefPop( Root *r, void *p ) {
   refassert( rootlist == r );
   refassert( rootlist->p == p );
   rootlist = rootlist->next;
 }
-
-static inline void DoRefArrayEnd( Root *r, void *p, int len ) {
-  int i;
-  for ( i = 1; i <= len; i++ )
-    DoRefPop( &r[ len - i ], &((void **) p)[ len - i ] );
-}
-
-#define RefArray( t, v, cnt, ini ) \
-	if (0) ; else { \
-		t v[ cnt ]; \
-		Root (CONCAT(v,__root__))[ cnt ]; \
-		DoRefArray( CONCAT(v,__root__), v, cnt, ini )
-#define RefArrayEnd( v, cnt ) \
-		DoRefArrayEnd( CONCAT(v,__root__), v, cnt ); \
-	}
 
 #define	Ref(t, v, init) \
 	if (0) ; else { \
@@ -574,7 +552,7 @@ extern Handler *tophandler, *roothandler;
 extern List *exception;
 extern void pophandler(Handler *handler);
 extern noreturn throw_exception(List *exc);
-extern noreturn fail(const char *from, const char *name VARARGS);
+extern noreturn fail(const char *from, const char *name, ...);
 extern void newchildcatcher(void);
 
 #if DEBUG_EXCEPTIONS

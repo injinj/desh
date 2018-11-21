@@ -1,5 +1,5 @@
 /* version.c -- version number ($Revision: 1.2 $) */
-#include <es/es.h>
+#include <desh/es.h>
 #define xstr(a) str(a)
 #define str(a) #a
 static const char id[] = "@(#)" SHNAME " version " xstr(DESH_VER);

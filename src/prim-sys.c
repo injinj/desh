@@ -3,32 +3,20 @@
 #define	REQUIRE_IOCTL	1
 #define	REQUIRE_STAT 	1
 
-#include <es/es.h>
-#include <es/prim.h>
-#include <es/term.h>
+#include <desh/es.h>
+#include <desh/prim.h>
+#include <desh/term.h>
 
-#ifdef HAVE_SETRLIMIT
-# define BSD_LIMITS 1
-#else
-# define BSD_LIMITS 0
-#endif
-
-#if BSD_LIMITS || BUILTIN_TIME
-# include <time.h>
-# include <sys/time.h>
-# include <sys/resource.h>
-# if !HAVE_WAIT3
-#  include <sys/times.h>
-#  include <limits.h>
-# endif
-#endif
+#include <time.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 PRIM(newpgrp) {
 	int pid;
 	if (list != NULL)
 		fail("$&newpgrp", "usage: newpgrp");
 	pid = getpid();
-	setpgrp(pid, pid);
+	setpgrp(/*pid, pid*/); /* could be setsid() */
 #ifdef TIOCSPGRP
 	{
 		Sigeffect sigtstp = esignal(SIGTSTP, sig_ignore);
@@ -136,7 +124,6 @@ PRIM(setsignals) {
  * limit builtin -- this is too much code for what it gives you
  */
 
-#if BSD_LIMITS
 typedef struct Suffix Suffix;
 struct Suffix {
 	const char *name;
@@ -203,13 +190,13 @@ static const Limit limits[] = {
 
 static void printlimit(const Limit *limit, Boolean hard) {
 	struct rlimit rlim;
-	LIMIT_T lim;
+	rlim_t lim;
 	getrlimit(limit->flag, &rlim);
 	if (hard)
 		lim = rlim.rlim_max;
 	else
 		lim = rlim.rlim_cur;
-	if (lim == (LIMIT_T) RLIM_INFINITY)
+	if (lim == (rlim_t) RLIM_INFINITY)
 		print("%-8s\tunlimited\n", limit->name);
 	else {
 		const Suffix *suf;
@@ -223,8 +210,8 @@ static void printlimit(const Limit *limit, Boolean hard) {
 	}
 }
 
-static LIMIT_T parselimit(const Limit *limit, char *s) {
-	LIMIT_T lim;
+static rlim_t parselimit(const Limit *limit, char *s) {
+	rlim_t lim;
 	char *t;
 	const Suffix *suf = limit->suffix;
 	if (streq(s, "unlimited"))
@@ -281,7 +268,7 @@ PRIM(limit) {
 		if (lp == NULL)
 			printlimit(lim, hard);
 		else {
-			LIMIT_T n;
+			rlim_t n;
 			struct rlimit rlim;
 			getrlimit(lim->flag, &rlim);
 			if ((n = parselimit(lim, getstr(lp->term))) < 0)
@@ -297,12 +284,8 @@ PRIM(limit) {
 	RefEnd(lp);
 	return ltrue;
 }
-#endif	/* BSD_LIMITS */
 
-#if BUILTIN_TIME
 PRIM(time) {
-
-#if HAVE_WAIT3
 
 	int pid, status;
 	time_t t0, t1;
@@ -330,119 +313,7 @@ PRIM(time) {
 
 	RefEnd(lp);
 	return mklist(mkstr(mkstatus(status)), NULL);
-
-#else	/* !HAVE_WAIT3 */
-
-	int pid, status;
-	Ref(List *, lp, list);
-
-	gc();	/* do a garbage collection first to ensure reproducible results */
-	pid = efork(TRUE, FALSE, 0, lp);
-	if (pid == 0) {
-		clock_t t0, t1;
-		struct tms tms;
-		static clock_t ticks = 0;
-
-		if (ticks == 0)
-			ticks = CLK_TCK;
-
-		t0 = times(&tms);
-		pid = efork(TRUE, FALSE, 0, lp);
-		if (pid == 0)
-			exit(exitstatus(eval(lp, NULL, evalflags | eval_inchild)));
-
-		status = ewaitfor(pid);
-		t1 = times(&tms);
-		SIGCHK();
-		printstatus(0, status);
-
-		tms.tms_cutime += ticks / 20;
-		tms.tms_cstime += ticks / 20;
-
-		eprint(
-			"%6ldr %5ld.%ldu %5ld.%lds\t%L\n",
-			(t1 - t0 + ticks / 2) / ticks,
-			tms.tms_cutime / ticks, ((tms.tms_cutime * 10) / ticks) % 10,
-			tms.tms_cstime / ticks, ((tms.tms_cstime * 10) / ticks) % 10,
-			lp, " "
-		);
-		exit(status);
-	}
-	status = ewaitfor(pid);
-	SIGCHK();
-	printstatus(0, status);
-
-	RefEnd(lp);
-	return mklist(mkstr(mkstatus(status)), NULL);
-
-#endif	/* !HAVE_WAIT3 */
-
 }
-#endif	/* BUILTIN_TIME */
-
-#if !KERNEL_POUNDBANG
-PRIM(execfailure) {
-	int fd, len, argc;
-	char header[1024], *args[10], *s, *end, *file;
-
-	gcdisable();
-	if (list == NULL)
-		fail("$&execfailure", "usage: %%exec-failure name argv");
-
-	file = getstr(list->term);
-	fd = eopen(file, oOpen);
-	if (fd < 0) {
-		gcenable();
-		return NULL;
-	}
-	len = read(fd, header, sizeof header);
-	close(fd);
-	if (len <= 2 || header[0] != '#' || header[1] != '!') {
-		gcenable();
-		return NULL;
-	}
-
-	s = &header[2];
-	end = &header[len];
-	argc = 0;
-	while (argc < arraysize(args) - 1) {
-		int c;
-		while ((c = *s) == ' ' || c == '\t')
-			if (++s >= end) {
-				gcenable();
-				return NULL;
-			}
-		if (c == '\n' || c == '\r')
-			break;
-		args[argc++] = s;
-		do
-			if (++s >= end) {
-				gcenable();
-				return NULL;
-			}
-		while (s < end && (c = *s) != ' ' && c != '\t' && c != '\n' && c != '\r');
-		*s++ = '\0';
-		if (c == '\n' || c == '\r')
-			break;
-	}
-	if (argc == 0) {
-		gcenable();
-		return NULL;
-	}
-
-	list = list->next;
-	if (list != NULL)
-		list = list->next;
-	list = mklist(mkstr(file), list);
-	while (argc != 0)
-		list = mklist(mkstr(args[--argc]), list);
-
-	Ref(List *, lp, list);
-	gcenable();
-	lp = eval(lp, NULL, eval_inchild);
-	RefReturn(lp);
-}
-#endif /* !KERNEL_POUNDBANG */
 
 extern Dict *initprims_sys(Dict *primdict) {
 	X(newpgrp);
@@ -452,14 +323,7 @@ extern Dict *initprims_sys(Dict *primdict) {
 	X(fork);
 	X(run);
 	X(setsignals);
-#if BSD_LIMITS
 	X(limit);
-#endif
-#if BUILTIN_TIME
 	X(time);
-#endif
-#if !KERNEL_POUNDBANG
-	X(execfailure);
-#endif /* !KERNEL_POUNDBANG */
 	return primdict;
 }

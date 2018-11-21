@@ -1,7 +1,7 @@
 /* eval.c -- evaluation of lists and trees ($Revision: 1.2 $) */
 
-#include <es/es.h>
-#include <es/term.h>
+#include <desh/es.h>
+#include <desh/term.h>
 
 unsigned long evaldepth = 0, maxevaldepth = MAXmaxevaldepth;
 

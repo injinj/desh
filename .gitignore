@@ -19,7 +19,7 @@
 *.output
 core.[0-9]?*
 # gen files
-/include/es/token.h
+/include/desh/token.h
 /src/initial.c
 /src/sigmsgs.c
 /src/y.tab.c

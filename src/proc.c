@@ -1,16 +1,14 @@
 /* proc.c -- process control system calls ($Revision: 1.2 $) */
 
-#include <es/es.h>
-#include <es/term.h>
-#include <es/prim.h>
+#include <desh/es.h>
+#include <desh/term.h>
+#include <desh/prim.h>
 #include <termios.h> //fixme:make conditionally
 
 /* TODO: the rusage code for the time builtin really needs to be cleaned up */
 
-#if HAVE_WAIT3
 #include <sys/time.h>
 #include <sys/resource.h>
-#endif
 
 extern void catcher(int); // fixme: put into es.h
 

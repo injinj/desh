@@ -2,8 +2,8 @@
 
 #define	REQUIRE_PWD	1
 
-#include <es/es.h>
-#include <es/prim.h>
+#include <desh/es.h>
+#include <desh/prim.h>
 
 #ifdef HAVE_LIBREADLINE
 #define PARSE_AND_BIND( S ) rl_parse_and_bind( S )

@@ -1,8 +1,8 @@
 /* str.c -- es string operations ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/gc.h>
-#include <es/print.h>
+#include <desh/es.h>
+#include <desh/gc.h>
+#include <desh/print.h>
 
 /* grow -- buffer grow function for str() */
 static void str_grow(Format *f, size_t more) {
@@ -21,11 +21,8 @@ extern char *strv(const char *fmt, va_list args) {
 	gcdisable();
 	buf = openbuffer(0);
 	format.u.p	= buf;
-#if NO_VA_LIST_ASSIGN
-	memcpy(format.args, args, sizeof(va_list));
-#else
-	format.args	= args;
-#endif
+
+        va_copy(format.args, args);
 	format.buf	= buf->str;
 	format.bufbegin	= buf->str;
 	format.bufend	= buf->str + buf->len;
@@ -34,16 +31,17 @@ extern char *strv(const char *fmt, va_list args) {
 
 	printfmt(&format, fmt);
 	fmtputc(&format, '\0');
+        va_end(format.args);
 	gcenable();
 
 	return sealbuffer(format.u.p);
 }
 
 /* str -- create a string (in garbage collection space) by printing to it */
-extern char *str VARARGS1(const char *, fmt) {
+extern char *str(const char *fmt, ...) {
 	char *s;
 	va_list args;
-	VA_START(args, fmt);
+	va_start(args, fmt);
 	s = strv(fmt, args);
 	va_end(args);
 	return s;
@@ -66,10 +64,10 @@ static void mprint_grow(Format *format, size_t more) {
 }
 
 /* mprint -- create a string in ealloc space by printing to it */
-extern char *mprint VARARGS1(const char *, fmt) {
+extern char *mprint(const char *fmt, ...) {
 	Format format;
 	format.u.n = 1;
-	VA_START(format.args, fmt);
+	va_start(format.args, fmt);
 
 	format.buf	= ealloc(PRINT_ALLOCSIZE);
 	format.bufbegin	= format.buf;

@@ -1,8 +1,8 @@
 /* prim-rel.cxx -- relational primitives */
 
-#include <es/es.h>
-#include <es/prim.h>
-#include <es/decimal.h>
+#include <desh/es.h>
+#include <desh/prim.h>
+#include <desh/decimal.h>
 
 using namespace es;
 

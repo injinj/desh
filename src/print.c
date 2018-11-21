@@ -1,7 +1,7 @@
 /* print.c -- formatted printing routines ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/print.h>
+#include <desh/es.h>
+#include <desh/print.h>
 
 #define	MAXCONV 256
 
@@ -265,25 +265,19 @@ extern int printfmt(Format *format, const char *fmt) {
  * the public entry points
  */
 
-extern int fmtprint VARARGS2(Format *, format, const char *, fmt) {
+extern int fmtprint (Format *format, const char *fmt, ...) {
 	int n = -format->flushed;
-#if NO_VA_LIST_ASSIGN
 	va_list saveargs;
 
-	memcpy(saveargs, format->args, sizeof(va_list));
-#else
-	va_list saveargs = format->args;
-#endif
+	va_copy(saveargs, format->args);
 
-
-	VA_START(format->args, fmt);
+	va_start(format->args, fmt);
 	n += printfmt(format, fmt);
 	va_end(format->args);
-#ifndef __va_copy
-	format->args = saveargs;
-#else
-        __va_copy(format->args, saveargs);
-#endif
+
+        va_copy(format->args, saveargs);
+        va_end(saveargs); /* va_end() is noop on x86_64 */
+
 	return n + format->flushed;
 }
 
@@ -320,34 +314,34 @@ static void fdprint(Format *format, int fd, const char *fmt) {
 	gcenable();
 }
 
-extern int fprint VARARGS2(int, fd, const char *, fmt) {
+extern int fprint(int fd, const char *fmt, ...) {
 	Format format;
-	VA_START(format.args, fmt);
+	va_start(format.args, fmt);
 	fdprint(&format, fd, fmt);
 	va_end(format.args);
 	return format.flushed;
 }
 
-extern int print VARARGS1(const char *, fmt) {
+extern int print(const char *fmt, ...) {
 	Format format;
-	VA_START(format.args, fmt);
+	va_start(format.args, fmt);
 	fdprint(&format, 1, fmt);
 	va_end(format.args);
 	return format.flushed;
 }
 
-extern int eprint VARARGS1(const char *, fmt) {
+extern int eprint(const char *fmt, ...) {
 	Format format;
-	VA_START(format.args, fmt);
+	va_start(format.args, fmt);
 	fdprint(&format, 2, fmt);
 	va_end(format.args);
 	return format.flushed;
 }
 
-extern noreturn panic VARARGS1(const char *, fmt) {
+extern noreturn panic(const char *fmt, ...) {
 	Format format;
 	gcdisable();
-	VA_START(format.args, fmt);
+	va_start(format.args, fmt);
 	eprint("es panic: ");
 	fdprint(&format, 2, fmt);
 	va_end(format.args);

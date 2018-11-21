@@ -45,9 +45,9 @@ Be sure to visit these pages:
 The rpm install from
 [copr](https://copr.fedorainfracloud.org/coprs/injinj/test/) or "make dist_rpm"
 will put an ini file into [/etc/deshrc](script/deshrc) which should cause the
-shell to look like this: [desh example](desh_example.png).  For the key
+shell to look like this: [desh example](doc/desh_example.png).  For the key
 bindings, hit F1 or ctrl-alt-k, F4 or ctrl-alt-l to clear, pgup/pgdown or
-alt-k,alt-j to page the view: [desh key](desh_key.png).
+alt-k,alt-j to page the view: [desh key](doc/desh_key.png).
 
 ## es 0.9
 

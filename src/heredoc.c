@@ -1,9 +1,9 @@
 /* heredoc.c -- in-line files (here documents) ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/gc.h>
-#include <es/input.h>
-#include <es/syntax.h>
+#include <desh/es.h>
+#include <desh/gc.h>
+#include <desh/input.h>
+#include <desh/syntax.h>
 
 typedef struct Here Here;
 struct Here {

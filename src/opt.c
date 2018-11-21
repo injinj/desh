@@ -1,6 +1,6 @@
 /* opt.c -- option parsing ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
+#include <desh/es.h>
 
 static const char *usage, *invoker;
 static List *args;

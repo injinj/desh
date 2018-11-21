@@ -1,7 +1,7 @@
 /* glom.c -- walk parse tree to produce list ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/gc.h>
+#include <desh/es.h>
+#include <desh/gc.h>
 
 /* concat -- cartesion cross product concatenation */
 extern "C" List *

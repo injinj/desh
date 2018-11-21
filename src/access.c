@@ -3,8 +3,8 @@
 #define	REQUIRE_STAT	1
 #define	REQUIRE_PARAM	1
 
-#include <es/es.h>
-#include <es/prim.h>
+#include <desh/es.h>
+#include <desh/prim.h>
 
 #define	READ	4
 #define	WRITE	2

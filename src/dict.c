@@ -1,7 +1,7 @@
 /* dict.c -- hash-table based dictionaries ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/gc.h>
+#include <desh/es.h>
+#include <desh/gc.h>
 
 #define	INIT_DICT_SIZE	2
 #define	REMAIN(n)	(((n) * 2) / 3)

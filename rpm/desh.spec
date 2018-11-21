@@ -34,7 +34,7 @@ make build_dir=./usr %{?_smp_mflags} dist_bins
 cp -a ./include ./usr/include
 mkdir -p ./usr/share/doc/%{name}
 cp -a script/deshrc script/esrc.haahr ./usr/share/doc/%{name}/
-cp -a README.md CHANGES es.1 ./usr/share/doc/%{name}/
+cp -a README.md doc/CHANGES doc/es.1 ./usr/share/doc/%{name}/
 
 %install
 rm -rf %{buildroot}

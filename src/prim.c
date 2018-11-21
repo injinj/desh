@@ -1,7 +1,7 @@
 /* prim.c -- primitives and primitive dispatching ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/prim.h>
+#include <desh/es.h>
+#include <desh/prim.h>
 
 static Dict *prims;
 

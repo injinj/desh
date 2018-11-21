@@ -6,7 +6,7 @@ date   := $(shell date +"%a %b %d %Y")
 major_num   := 1
 minor_num   := 0
 patch_num   := 0
-build_num   := 3
+build_num   := 4
 version     := $(major_num).$(minor_num).$(patch_num)
 ver_build   := $(version)-$(build_num)
 
@@ -23,6 +23,6 @@ rpmbuild/SOURCES/$(name)-$(ver_build).tar.gz:
 	    -e "s/999.999/${version}/" \
 	    -e "s/__DATE__/${date}/" < rpm/$(name).spec > rpmbuild/SPECS/$(name).spec
 	mkdir -p rpmbuild/SOURCES/$(name)-${version}
-	ln -sf ../../../{src,script,include,GNUmakefile,CHANGES,README.md,es.1,.copr} rpmbuild/SOURCES/$(name)-${version}/
+	ln -sf ../../../{src,script,include,GNUmakefile,README.md,doc,.copr} rpmbuild/SOURCES/$(name)-${version}/
 	( cd rpmbuild/SOURCES && tar chzf $(name)-${ver_build}.tar.gz --exclude=".*.sw*" $(name)-${version} && rm -r -f $(name)-${version} )
 

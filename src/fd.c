@@ -1,6 +1,6 @@
 /* fd.c -- file descriptor manipulations ($Revision: 1.2 $) */
 
-#include <es/es.h>
+#include <desh/es.h>
 
 
 /* mvfd -- duplicate a fd and close the old */

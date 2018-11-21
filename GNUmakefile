@@ -103,10 +103,10 @@ desh_libs := $(libd)/libdesh.so
 desh_lnk  := -ldesh $(dlnk_lib)
 $(bind)/desh: $(desh_objs) $(desh_libs)
 
-src/y.tab.c include/es/token.h: src/parse.y
+src/y.tab.c include/desh/token.h: src/parse.y
 	yacc -vd src/parse.y
 	mv y.tab.c src/y.tab.c
-	mv y.tab.h include/es/token.h
+	mv y.tab.h include/desh/token.h
 
 src/initial.c: $(bind)/esdump script/initial.es
 	$(bind)/esdump < script/initial.es > src/initial.c
@@ -122,7 +122,7 @@ all_exes += $(bind)/desh
 
 all_dirs := $(bind) $(libd) $(objd) $(dependd)
 
-gen_files += src/sigmsgs.c src/y.tab.c include/es/token.h
+gen_files += src/sigmsgs.c src/y.tab.c include/desh/token.h
 
 # if sub modules initialized, use those, otherwise use installed
 # (git submodule update --init --recursive)

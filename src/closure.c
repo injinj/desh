@@ -1,7 +1,7 @@
 /* closure.c -- operations on bindings, closures, lambdas, and thunks ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/gc.h>
+#include <desh/es.h>
+#include <desh/gc.h>
 
 /*
  * Closure garbage collection support

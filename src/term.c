@@ -1,8 +1,8 @@
 /* term.c -- operations on terms ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/gc.h>
-#include <es/term.h>
+#include <desh/es.h>
+#include <desh/gc.h>
+#include <desh/term.h>
 
 DefineTag(Term, static);
 

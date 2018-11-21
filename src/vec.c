@@ -1,7 +1,7 @@
 /* vec.c -- argv[] and envp[] vectors ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/gc.h>
+#include <desh/es.h>
+#include <desh/gc.h>
 
 DefineTag(Vector, static);
 

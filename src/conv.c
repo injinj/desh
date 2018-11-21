@@ -1,7 +1,7 @@
 /* conv.c -- convert between internal and external forms ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/print.h>
+#include <desh/es.h>
+#include <desh/print.h>
 
 
 /* %L -- print a list */

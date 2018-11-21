@@ -1,9 +1,9 @@
 /* var.c -- es variables ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/gc.h>
-#include <es/var.h>
-#include <es/term.h>
+#include <desh/es.h>
+#include <desh/gc.h>
+#include <desh/var.h>
+#include <desh/term.h>
 
 #if PROTECT_ENV
 #define	ENV_FORMAT	"%F=%W"

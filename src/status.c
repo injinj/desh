@@ -1,7 +1,7 @@
 /* status.c -- status manipulations ($Revision: 1.1.1.1 $) */
 
-#include <es/es.h>
-#include <es/term.h>
+#include <desh/es.h>
+#include <desh/term.h>
 
 static const Term
 	trueterm	= { "0", NULL },

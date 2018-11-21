@@ -1,18 +1,6 @@
 /* util.c -- the kitchen sink ($Revision: 1.2 $) */
 
-#include <es/es.h>
-
-#if !HAVE_STRERROR
-/* strerror -- turn an error code into a string */
-static char *strerror(int n) {
-	extern int sys_nerr;
-	extern char *sys_errlist[];
-	if (n > sys_nerr)
-	  return NULL;
-	return sys_errlist[n];
-}
-
-#endif
+#include <desh/es.h>
 
 /* esstrerror -- a wrapper around sterror(3) */
 extern char *esstrerror(int n) {

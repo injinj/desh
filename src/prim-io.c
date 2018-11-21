@@ -1,9 +1,9 @@
 /* prim-io.c -- input/output and redirection primitives ($Revision: 1.2 $) */
 
-#include <es/es.h>
-#include <es/gc.h>
-#include <es/prim.h>
-#include <es/term.h>
+#include <desh/es.h>
+#include <desh/gc.h>
+#include <desh/prim.h>
+#include <desh/term.h>
 
 static const char *caller;
 
@@ -280,7 +280,6 @@ PRIM(pipe) {
 	RefReturn(result);
 }
 
-#if HAVE_DEV_FD
 PRIM(readfrom) {
 	int pid, p[2], status;
 	Push push;
@@ -362,7 +361,6 @@ PRIM(writeto) {
 	RefEnd3(cmd, output, var);
 	RefReturn(lp);
 }
-#endif /* HAVE_DEV_FD */
 
 #define	BUFSIZE	4096
 
@@ -465,10 +463,8 @@ extern Dict *initprims_io(Dict *primdict) {
 	X(backquote);
 	X(newfd);
 	X(here);
-#if HAVE_DEV_FD
 	X(readfrom);
 	X(writeto);
-#endif
 	X(read);
 	return primdict;
 }
