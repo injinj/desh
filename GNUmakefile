@@ -26,7 +26,7 @@ CXX         ?= g++
 cc          := $(CC)
 cpp         := $(CXX)
 cppflags    := -fno-rtti -fno-exceptions
-arch_cflags := -march=corei7-avx -fno-omit-frame-pointer
+arch_cflags := -fno-omit-frame-pointer
 cpplink     := $(CC)
 gcc_wflags  := -Wall -Werror
 fpicflags   := -fPIC
@@ -111,8 +111,8 @@ src/y.tab.c include/es/token.h: src/parse.y
 src/initial.c: $(bind)/esdump script/initial.es
 	$(bind)/esdump < script/initial.es > src/initial.c
 
-src/sigmsgs.c: /usr/include/bits/signum-generic.h
-	script/mksignal < /usr/include/bits/signum-generic.h > src/sigmsgs.c
+src/sigmsgs.c: /usr/include/bits/signum.h
+	cat /usr/include/bits/signum*.h | script/mksignal > src/sigmsgs.c
 
 esdump_objs := $(objd)/dump.o $(objd)/main.o $(common_objs) 
 esdump_lnk  := $(lnk_lib)
@@ -127,7 +127,7 @@ gen_files += src/sigmsgs.c src/y.tab.c include/es/token.h
 # if sub modules initialized, use those, otherwise use installed
 # (git submodule update --init --recursive)
 $(lc_lib):
-	if [ -d linecook && -f linecook/GNUmakefile ] ; then \
+	if [ -d linecook -a -f linecook/GNUmakefile ] ; then \
 	  $(MAKE) -C linecook ; \
 	else \
 	  mkdir -p `dirname $(lc_lib)` ; \
@@ -135,7 +135,7 @@ $(lc_lib):
 	fi
 
 $(dec_lib):
-	if [ -d libdecnumber && -f libdecnumber/GNUmakefile ] ; then \
+	if [ -d libdecnumber -a -f libdecnumber/GNUmakefile ] ; then \
 	  $(MAKE) -C libdecnumber ; \
 	else \
 	  mkdir -p `dirname $(dec_lib)` ; \

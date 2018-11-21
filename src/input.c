@@ -386,7 +386,7 @@ extern void resetparser(void) {
 /* runinput -- run from an input source */
 extern List *runinput(Input *in, int runflags) {
 	volatile int flags = runflags;
-	List * volatile result;
+	List * volatile result = NULL;
 	List *repl, *dispatch;
 	Push push;
 	const char *dispatcher[] = {
@@ -510,7 +510,7 @@ extern List *runstring(const char *str, const char *name, int flags) {
 
 /* parseinput -- turn an input source into a tree */
 extern Tree *parseinput(Input *in) {
-	Tree * volatile result;
+	Tree * volatile result = NULL;
 
 	in->prev = input;
 	in->runflags = 0;
