@@ -1,5 +1,7 @@
 # Readme for desh
 
+[![copr status](https://copr.fedorainfracloud.org/coprs/injinj/test/package/desh/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/injinj/test/package/desh/)
+
 ## desh
 
 This is an experimental shell that I use.  It is a forked version of the es job
@@ -39,6 +41,13 @@ Be sure to visit these pages:
 2. [XS](https://github.com/TieDyedDevil/XS) -- this is the fork of es which
    incorporates the Boehm garbage collector.  The GC parts of es is one of the
    major pieces of it's architecture.
+
+The rpm install from
+[copr](https://copr.fedorainfracloud.org/coprs/injinj/test/) or "make dist_rpm"
+will put an ini file into [/etc/deshrc](script/deshrc) which should cause the
+shell to look like this: [desh example](desh_example.png).  For the key
+bindings, hit F1 or ctrl-alt-k, F4 or ctrl-alt-l to clear, pgup/pgdown or
+alt-k,alt-j to page the view: [desh key](desh_key.png).
 
 ## es 0.9
 
