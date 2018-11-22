@@ -1,6 +1,6 @@
 # Readme for desh
 
-[![copr status](https://copr.fedorainfracloud.org/coprs/injinj/test/package/desh/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/injinj/test/package/desh/)
+[![copr status](https://copr.fedorainfracloud.org/coprs/injinj/gold/package/desh/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/injinj/gold/package/desh/)
 
 ## desh
 
