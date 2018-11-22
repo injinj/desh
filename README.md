@@ -43,7 +43,7 @@ Be sure to visit these pages:
    major pieces of it's architecture.
 
 The rpm install from
-[copr](https://copr.fedorainfracloud.org/coprs/injinj/test/) or "make dist_rpm"
+[copr](https://copr.fedorainfracloud.org/coprs/injinj/gold/) or "make dist_rpm"
 will put an ini file into [/etc/deshrc](script/deshrc) which should cause the
 shell to look like this: [desh example](doc/desh_example.png).  For the key
 bindings, hit F1 or ctrl-alt-k, F4 or ctrl-alt-l to clear, pgup/pgdown or
