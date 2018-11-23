@@ -11,11 +11,14 @@ BuildRoot:	${_tmppath}
 BuildArch:      x86_64
 Prefix:	        /usr
 BuildRequires:  gcc-c++
+BuildRequires:  chrpath
 BuildRequires:  byacc
 BuildRequires:  linecook
 BuildRequires:  libdecnumber
 Requires:       linecook
 Requires:       libdecnumber
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
 
 %description
 An experimental shell derived from es and rc.
@@ -33,7 +36,7 @@ An experimental shell derived from es and rc.
 make build_dir=./usr %{?_smp_mflags} dist_bins
 cp -a ./include ./usr/include
 mkdir -p ./usr/share/doc/%{name}
-cp -a script/deshrc script/esrc.haahr ./usr/share/doc/%{name}/
+cp -a script/%{name}rc script/esrc.haahr ./usr/share/doc/%{name}/
 cp -a README.md doc/CHANGES doc/es.1 ./usr/share/doc/%{name}/
 
 %install
@@ -54,16 +57,19 @@ rm -rf %{buildroot}
 /usr/share/doc/*
 
 %post
-echo "${RPM_INSTALL_PREFIX}/lib64" > /etc/ld.so.conf.d/desh.conf
-cp -a "${RPM_INSTALL_PREFIX}/share/doc/desh/deshrc" /etc/deshrc
-ln -s -f "${RPM_INSTALL_PREFIX}/share/doc/desh/es.1" /usr/share/man/man1/desh.1
-ldconfig
+echo "${RPM_INSTALL_PREFIX}/lib64" > /etc/ld.so.conf.d/%{name}.conf
+cp -a "${RPM_INSTALL_PREFIX}/share/doc/%{name}/%{name}rc" /etc/%{name}rc
+ln -s -f "${RPM_INSTALL_PREFIX}/share/doc/%{name}/es.1" /usr/share/man/man1/%{name}.1
+/sbin/ldconfig
 
 %postun
-rm -f /etc/ld.so.conf.d/desh.conf
-rm -f /etc/deshrc
-rm -f /usr/share/man/man1/desh.1
-ldconfig
+# if uninstalling
+if [ $1 -eq 0 ] ; then
+rm -f /etc/ld.so.conf.d/%{name}.conf
+rm -f /etc/%{name}rc
+rm -f /usr/share/man/man1/%{name}.1
+fi
+/sbin/ldconfig
 
 %changelog
 * __DATE__ <gchrisanderson@gmail.com>

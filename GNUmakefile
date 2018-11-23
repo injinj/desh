@@ -31,6 +31,7 @@ cpplink     := $(CC)
 gcc_wflags  := -Wall -Werror
 fpicflags   := -fPIC
 soflag      := -shared
+rpath       := -Wl,-rpath,$(libd),-rpath,linecook/$(libd),-rpath,libdecnumber/$(libd)
 
 ifdef DEBUG
 default_cflags := -ggdb
@@ -78,9 +79,7 @@ common_files  := access closure conv dict eval except fd gc glob \
 		 var vec version y.tab
 all_files     := $(common_files) main initial dump
 input_includes   := -Ilinecook/include
-decimal_includes := -Ilibdecnumber/include \
-                    -Ilibdecnumber/include/libdecnumber \
-		    -I/usr/include/libdecnumber
+decimal_includes := -Ilibdecnumber/include
 
 common_objs := $(addprefix $(objd)/, $(addsuffix .o, $(common_files)))
 common_dbjs := $(addprefix $(objd)/, $(addsuffix .fpic.o, $(common_files)))
@@ -166,6 +165,8 @@ $(dependd)/depend.make: $(dependd) $(all_depends)
 
 .PHONY: dist_bins
 dist_bins: $(gen_files) $(all_libs) $(bind)/desh
+	chrpath -d $(libd)/libdesh.so
+	chrpath -d $(bind)/desh
 
 .PHONY: dist_rpm
 dist_rpm: srpm
@@ -196,11 +197,11 @@ $(libd)/%.a:
 	ar rc $@ $($(*)_objs)
 
 $(libd)/%.so:
-	$(cpplink) $(soflag) $(cflags) -o $@.$($(*)_spec) -Wl,-soname=$(@F).$($(*)_ver) $($(*)_dbjs) $($(*)_dlnk) $(cpp_dll_lnk) $(sock_lib) $(math_lib) $(thread_lib) $(malloc_lib) $(dynlink_lib) && \
+	$(cpplink) $(soflag) $(rpath) $(cflags) -o $@.$($(*)_spec) -Wl,-soname=$(@F).$($(*)_ver) $($(*)_dbjs) $($(*)_dlnk) $(cpp_dll_lnk) $(sock_lib) $(math_lib) $(thread_lib) $(malloc_lib) $(dynlink_lib) && \
 	cd $(libd) && ln -f -s $(@F).$($(*)_spec) $(@F).$($(*)_ver) && ln -f -s $(@F).$($(*)_ver) $(@F)
 
 $(bind)/%:
-	$(cpplink) $(cflags) -o $@ $($(*)_objs) -L$(libd) $($(*)_lnk) $(cpp_lnk) $(sock_lib) $(math_lib) $(thread_lib) $(malloc_lib) $(dynlink_lib)
+	$(cpplink) $(cflags) $(rpath) -o $@ $($(*)_objs) -L$(libd) $($(*)_lnk) $(cpp_lnk) $(sock_lib) $(math_lib) $(thread_lib) $(malloc_lib) $(dynlink_lib)
 
 $(dependd)/%.d: src/%.cpp
 	gcc -x c++ $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).o -MF $@
