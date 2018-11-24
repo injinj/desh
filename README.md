@@ -49,6 +49,52 @@ shell to look like this: [desh example](doc/desh_example.png).  For the key
 bindings, hit F1 or ctrl-alt-k, F4 or ctrl-alt-l to clear, pgup/pgdown or
 alt-k,alt-j to page the view: [desh key](doc/desh_key.png).
 
+### makeing desh
+
+This project uses a makefile so make will build everything.  It needs gcc-c++,
+byacc and the git submodules.  I'm using Fedora 27 below.
+
+```console
+$ git clone git@github.com:injinj/desh.git
+$ cd desh
+$ git submodule update --init --recursive
+$ sudo dnf install gcc-c++ make byacc chrpath
+$ make
+$ FC27_x86_64/bin/desh
+;
+```
+
+That should be it.  The target will be in a build directory called FC27_x86_64
+or RH7_x86_64 or UB9_x86_64, based on the Linux distro installed.  There are
+run paths inserted into the binary so that it finds the shared libraries when
+run from the make directory for debugging.  These paths are removed for the rpm
+install using the chrpath command.  The make dist_rpm will create an rpm based
+install using the rpm/desh.spec file, but it needs the submodule rpms installed
+before the desh rpm itself is built and installed.
+
+```console
+$ cd linecook
+$ make dist_rpm
+$ sudo rpm -i rpmbuild/RPMS/x86_64/linecook-1.0.0-7.fc27.x86_64.rpm
+$ cd ../libdecnumber
+$ make dist_rpm
+$ sudo rpm -i rpmbuild/RPMS/x86_64/libdecnumber-3.61.0-4.fc27.x86_64.rpm
+$ cd ..
+$ make dist_rpm
+$ sudo rpm -i rpmbuild/RPMS/x86_64/desh-1.0.0-8.fc27.x86_64.rpm
+```
+
+Uninstalling the rpms is with the -e option:
+
+```console
+$ sudo rpm -e linecook libdecnumber desh
+```
+
+I've built CentOS 7, Fedora 27, Fedora 28, Fedora 29 x86_64, so I know at least
+these will work,  CentOS 6 does not work without adding utf-32 glibc support for
+linecook.  That shouldn't be terribly difficult, but I don't have a reason for
+that port.
+
 ## es 0.9
 
 This is the README file for es, version 0.9-beta1
