@@ -164,20 +164,20 @@ extern int
 yylex( void )
 {
   static Boolean dollar = FALSE;
-  int            c;
+  const char   * cmd;
+  int            fd[ 2 ],
+                 pipe[ 2 ],
+                 c;
   size_t         i;    /* The purpose of all these local assignments is to	*/
-  const char *   meta; /* allow optimizing compilers like gcc to load these
+  const char   * meta; /* allow optimizing compilers like gcc to load these
                         */
-  char *buf =
-    tokenbuf; /* values into registers. On a sparc this is a		*/
-  YYSTYPE *y =
-    &yylval; /* win, in code size *and* execution time		*/
+  char    * buf = tokenbuf;/* values into registers. On a sparc this is a */
+  YYSTYPE * y   = &yylval; /* win, in code size *and* execution time */
 
   if ( goterror ) {
     goterror = FALSE;
     return NL;
   }
-
   /* rc variable-names may contain only alnum, '*' and '_', so use dnw if we
    * are scanning one. */
   meta   = ( dollar ? dollar_non_word : non_word );
@@ -193,6 +193,10 @@ top:
     w = STATE_NON_WORD;
   if ( c == EOF )
     return ENDFILE;
+  if ( c == 0 ) { /* interactive keyboard ctrl-c */
+    scanerror( "" );
+    return ERROR;
+  }
   if ( !meta[ (unsigned char) c ] ) { /* it's a word or keyword. */
     InsertFreeCaret();
     w = STATE_REAL_WORD;
@@ -259,6 +263,7 @@ top:
         return BACKBACK;
       UNGETC( c );
       return '`';
+
     case '$':
       dollar = TRUE;
       switch ( c = GETC() ) {
@@ -267,6 +272,7 @@ top:
         case '&': return PRIM;
         default: UNGETC( c ); return '$';
       }
+
     case '\'':
       w = STATE_REAL_WORD;
       i = 0;
@@ -286,22 +292,24 @@ top:
       buf[ i ] = '\0';
       y->str   = gcdup( buf );
       return QWORD;
+
     case '\\':
       if ( ( c = GETC() ) == '\n' ) {
         print_prompt2();
         UNGETC( ' ' );
         goto top; /* Pretend it was just another space. */
       }
-      if ( c == EOF ) {
-        UNGETC( EOF );
-        goto badescape;
-      }
       UNGETC( c );
+      if ( c == EOF )
+        goto badescape;
       c = '\\';
       InsertFreeCaret();
       w = STATE_REAL_WORD;
       c = GETC();
       switch ( c ) {
+        case 0: /* interactive keyboard ctrl-c */
+          scanerror( "" );
+          return ERROR;
         case 'a': *buf = '\a'; break;
         case 'b': *buf = '\b'; break;
         case 'e': *buf = '\033'; break;
@@ -358,16 +366,19 @@ top:
       buf[ 1 ] = 0;
       y->str   = gcdup( buf );
       return QWORD;
+
     case '#':
       while ( ( c = GETC() ) != '\n' ) /* skip comment until newline */
         if ( c == EOF )
           return ENDFILE;
+
       /* FALLTHROUGH */
     case '\n':
       input->lineno++;
       newline = TRUE;
       w       = STATE_NON_WORD;
       return NL;
+
     case '(':
       if ( w == STATE_REAL_WORD ) /* not keywords, so let & friends work */
         c = SUB;
@@ -377,7 +388,10 @@ top:
     case ')':
     case '=':
     case '{':
-    case '}': w = STATE_NON_WORD; return c;
+    case '}':
+      w = STATE_NON_WORD;
+      return c;
+
     case '&':
       w = STATE_NON_WORD;
       c = GETC();
@@ -386,74 +400,70 @@ top:
       UNGETC( c );
       return '&';
 
-    case '|': {
-      int p[ 2 ];
+    case '|':
       w = STATE_NON_WORD;
       c = GETC();
       if ( c == '|' )
         return OROR;
-      if ( !getfds( p, c, 1, 0 ) )
+      if ( !getfds( pipe, c, 1, 0 ) )
         return ERROR;
-      if ( p[ 1 ] == CLOSED ) {
+      if ( pipe[ 1 ] == CLOSED ) {
         scanerror( "expected digit after '='" ); /* can't close a pipe */
         return ERROR;
       }
-      y->tree = mk( nPipe, p[ 0 ], p[ 1 ] );
+      y->tree = mk( nPipe, pipe[ 0 ], pipe[ 1 ] );
       return PIPE;
-    }
 
-      {
-        char *cmd;
-        int   fd[ 2 ];
-        case '<':
-          fd[ 0 ] = 0;
-          if ( ( c = GETC() ) == '>' )
-            if ( ( c = GETC() ) == '>' ) {
-              c   = GETC();
-              cmd = "%open-append";
-            }
-            else
-              cmd = "%open-write";
-          else if ( c == '<' )
-            if ( ( c = GETC() ) == '<' ) {
-              c   = GETC();
-              cmd = "%here";
-            }
-            else
-              cmd = "%heredoc";
-          else if ( c == '=' )
-            return CALL;
-          else
-            cmd = "%open";
-          goto redirection;
-        case '>':
-          fd[ 0 ] = 1;
-          if ( ( c = GETC() ) == '>' )
-            if ( ( c = GETC() ) == '<' ) {
-              c   = GETC();
-              cmd = "%open-append";
-            }
-            else
-              cmd = "%append";
-          else if ( c == '<' ) {
-            c   = GETC();
-            cmd = "%open-create";
-          }
-          else
-            cmd = "%create";
-          goto redirection;
-        redirection:
-          w = STATE_NON_WORD;
-          if ( !getfds( fd, c, fd[ 0 ], DEFAULT ) )
-            return ERROR;
-          if ( fd[ 1 ] != DEFAULT ) {
-            y->tree = ( fd[ 1 ] == CLOSED ) ? mkclose( fd[ 0 ] )
-                                            : mkdup( fd[ 0 ], fd[ 1 ] );
-            return DUP;
-          }
-          y->tree = mkredircmd( cmd, fd[ 0 ] );
-          return REDIR;
+    case '<':
+      fd[ 0 ] = 0;
+      if ( ( c = GETC() ) == '>' )
+        if ( ( c = GETC() ) == '>' ) {
+          c   = GETC();
+          cmd = "%open-append";
+        }
+        else
+          cmd = "%open-write";
+      else if ( c == '<' )
+        if ( ( c = GETC() ) == '<' ) {
+          c   = GETC();
+          cmd = "%here";
+        }
+        else
+          cmd = "%heredoc";
+      else if ( c == '=' )
+        return CALL;
+      else
+        cmd = "%open";
+      goto redirection;
+
+    case '>':
+      fd[ 0 ] = 1;
+      if ( ( c = GETC() ) == '>' )
+        if ( ( c = GETC() ) == '<' ) {
+          c   = GETC();
+          cmd = "%open-append";
+        }
+        else
+          cmd = "%append";
+      else if ( c == '<' ) {
+        c   = GETC();
+        cmd = "%open-create";
       }
+      else
+        cmd = "%create";
+      goto redirection;
+
+    redirection:
+      w = STATE_NON_WORD;
+      if ( !getfds( fd, c, fd[ 0 ], DEFAULT ) )
+        return ERROR;
+      if ( fd[ 1 ] != DEFAULT ) {
+        y->tree = ( fd[ 1 ] == CLOSED ) ? mkclose( fd[ 0 ] )
+                                        : mkdup( fd[ 0 ], fd[ 1 ] );
+        return DUP;
+      }
+      y->tree = mkredircmd( (char *) cmd, fd[ 0 ] );
+      return REDIR;
 
     default:
       assert( c != '\0' );

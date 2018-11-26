@@ -4,19 +4,20 @@
 
 ## desh
 
-This is an experimental shell that I use.  It is a forked version of the es job
-control branch, described below.  I changed the the name to desh to because it
-is currently has shell features which are not compatible with es.
+This is an experimental shell that I use.  It is a forked version of the
+<b>es</b> job control branch, described below.  I changed the the name to
+<b>desh</b> to because it currently has shell features which are not compatible
+with <b>es</b>.
 
-The main thing that is changed between desh and es is that the readline library
-is no longer used.  Another command line editor called linecook is used
-instead.  The linecook interface with the user has similarities with readline,
-but it is not api compatible with it.
+The main thing that is changed between <b>desh</b> and <b>es</b> is that the
+readline library is no longer used.  Another command line editor called
+linecook is used instead.  The linecook interface with the user has
+similarities with readline, but it is not api compatible with it.
 
-The linecook library is the primary reason desh exists.  I am using desh to
-test and advance features in linecook.  The major reason that I chose this
-particular branch of this code base is because it has job control, which means
-that ctrl-z will suspend the currently executing job.
+The linecook library is the primary reason <b>desh</b> exists.  I am using
+<b>desh</b> to test and advance features in linecook.  The major reason that I
+chose this particular branch of this code base is because it has job control,
+which means that ctrl-z will suspend the currently executing job.
 
 Other differences:
 
@@ -35,12 +36,12 @@ Other differences:
 
 Be sure to visit these pages:
 
-1. [es](https://wryun.github.io/es-shell/) -- this is the home page for es, it
-   describes the lineage and links to several academic papers.
+1. [es](https://wryun.github.io/es-shell/) -- this is the home page for
+   <b>es</b>, it describes the lineage and links to several academic papers.
 
-2. [XS](https://github.com/TieDyedDevil/XS) -- this is the fork of es which
-   incorporates the Boehm garbage collector.  The GC parts of es is one of the
-   major pieces of it's architecture.
+2. [XS](https://github.com/TieDyedDevil/XS) -- this is the fork of <b>es</b>
+   which incorporates the Boehm garbage collector.  The GC parts of <b>es</b>
+   is one of the major pieces of it's architecture.
 
 The rpm install from
 [copr](https://copr.fedorainfracloud.org/coprs/injinj/gold/) or "make dist_rpm"
@@ -49,7 +50,7 @@ shell to look like this: [desh example](doc/desh_example.png).  For the key
 bindings, hit F1 or ctrl-alt-k, F4 or ctrl-alt-l to clear, pgup/pgdown or
 alt-k,alt-j to page the view: [desh key](doc/desh_key.png).
 
-### makeing desh
+### Making desh
 
 This project uses a makefile so make will build everything.  It needs gcc-c++,
 byacc and the git submodules.  I'm using Fedora 27 below.

@@ -309,6 +309,7 @@ extern List *runstring(const char *str, const char *name, int flags);
 #define	run_echoinput		16	/* -v */
 #define	run_printcmds		32	/* -x */
 #define	run_lisptrees		64	/* -L and defined(LISPTREES) */
+#define run_interrupt          128      /* ctrl-c on input */
 
 extern Boolean reset_terminal;
 

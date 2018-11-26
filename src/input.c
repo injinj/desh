@@ -97,36 +97,51 @@ static int ungetfill(Input *in) {
 }
 
 /* unget -- push back one character */
-extern void unget(Input *in, int c) {
-	if (in->ungot > 0) {
-		assert(in->ungot < MAXUNGET);
-		in->unget[in->ungot++] = c;
-	} else if (in->bufbegin < in->buf && in->buf[-1] == c && (input->runflags & run_echoinput) == 0)
-		--in->buf;
-	else {
-		assert(in->rfill == NULL);
-		in->rfill = in->fill;
-		in->fill = ungetfill;
-		assert(in->rbuf == NULL);
-		in->rbuf = in->buf;
-		in->buf = in->bufend;
-		assert(in->ungot == 0);
-		in->ungot = 1;
-		in->unget[0] = c;
-	}
+extern void
+unget( Input *in, int c )
+{
+  if ( in->ungot > 0 ) {
+    assert( in->ungot < MAXUNGET );
+    in->unget[ in->ungot++ ] = c;
+  }
+  else if ( in->bufbegin < in->buf && in->buf[ -1 ] == c &&
+            ( input->runflags & run_echoinput ) == 0 )
+    --in->buf;
+  else {
+    assert( in->rfill == NULL );
+    in->rfill = in->fill;
+    in->fill  = ungetfill;
+    assert( in->rbuf == NULL );
+    in->rbuf = in->buf;
+    in->buf  = in->bufend;
+    assert( in->ungot == 0 );
+    in->ungot      = 1;
+    in->unget[ 0 ] = c;
+  }
 }
-
 
 /*
  * getting characters
  */
 
 /* get -- get a character, filter out nulls */
-static int get(Input *in) {
-	int c;
-	while ((c = (in->buf < in->bufend ? *in->buf++ : (*in->fill)(in))) == '\0')
-		warn("null character ignored");
-	return c;
+static int
+get( Input *in )
+{
+  for (;;) {
+    int c;
+    if ( in->buf < in->bufend )
+      c = *in->buf++;
+    else
+      c = ( *in->fill )( in );
+    if ( c != 0 )
+      return c;
+    if ( ( in->runflags & run_interrupt ) != 0 ) {
+      in->runflags &= ~run_interrupt;
+      return 0;
+    }
+    warn( "null character ignored" );
+  }
 }
 
 /* getverbose -- get a character, print it to standard error */
@@ -249,6 +264,8 @@ static int
 tty_read( Input *in )
 {
   int r;
+  Boolean is_signal;
+
   if ( tty == NULL || tty->in_fd != in->fd )
     if ( tty_init( in ) != 0 )
       return -1;
@@ -258,9 +275,11 @@ tty_read( Input *in )
          lc_tty_set_prompt( tty, (TTYPrompt) r, prompt[ r ] ) != 0 )
       lc_tty_set_default_prompt( tty, (TTYPrompt) r );
   }
+
   if ( ! prompt2 ) /* flush history buffer if not a continuation */
     lc_tty_flush_history( tty );
   lc_tty_set_continue( tty, prompt2 ); /* use prompt2 continue when 1 */
+  is_signal = FALSE;
   for (;;) {
     r = lc_tty_get_line( tty ); /* retry line and run timed events */
     if ( r < 0 )
@@ -282,26 +301,64 @@ tty_read( Input *in )
         lc_tty_push_history( tty, tty->line, tty->line_len );
       break;
     }
-    /* r == 0 to continue, caused by EAGAIN or empty action,
+    /* r == 0 to continue, caused by EAGAIN or EINTR or empty action,
      * poll will recognize EAGAIN and not do anything for the other case */
-    /* if signaled while in lc_get_line() with read() errno=EINTR or
-     * an ctrl-c is typed at the terminal */
+    if ( errno == EINTR ) { /* check for signals */
+      r = -1;
+      is_signal = TRUE;
+      break;
+    }
+    /* if ctrl-c is typed at the terminal */
     if ( tty->lc_status != LINE_STATUS_INTERRUPT ) {
-      r = lc_tty_poll_wait( tty, 250 ); /* wait at most 250ms */
+      r = lc_tty_poll_wait( tty, 500 ); /* wait at most 500ms */
       if ( r < 0 ) /* if error in poll wait */
         break;
+      if ( r == 0 && errno == EINTR ) { /* check for signals */
+        r = -1;
+        is_signal = TRUE;
+        break;
+      }
     }
     /* if signaled while in lc_get_line() / poll EINTR */
     if ( tty->lc_status == LINE_STATUS_INTERRUPT ) {
-      errno = EINTR;
       r = -1;
       break;
     }
   }
   lc_tty_normal_mode( tty ); /* reset terminal to normal state */
 
-  if ( r < 0 )
+  if ( r < 0 ) {
+    if ( ! is_signal ) {
+      switch ( tty->lc_status ) {
+        case LINE_STATUS_BAD_INPUT: /* XXX is fail is correct error? */
+          warn( "Linecook: Bad UTF8 Input" );
+          break;
+        case LINE_STATUS_BAD_PROMPT:
+          warn( "Linecook: Invalid Prompt" );
+          break;
+        case LINE_STATUS_BAD_CURSOR:
+          warn( "Linecook: Bad Cursor Position" );
+          break;
+
+        case LINE_STATUS_WR_FAIL:
+        case LINE_STATUS_RD_FAIL:
+          return -2; /* eof */
+
+        case LINE_STATUS_SUSPEND:
+        case LINE_STATUS_INTERRUPT:
+          in->runflags |= run_interrupt; /* cause yyabort w/ERROR token */
+          r = 2;
+          in->bufbegin[ 0 ] = 0;
+          in->bufbegin[ 1 ] = '\n';
+          return r;
+
+        default:
+          break;
+      }
+    }
+    errno = EINTR;
     return -1;
+  }
   return r;
 }
 
@@ -326,7 +383,7 @@ fdfill( Input *in )
     in->fill = eoffill;
     in->runflags &= ~run_interactive;
     if ( nread == -1 )
-      fail( "$&parse", "%s: %s", in->name == NULL ? "es" : in->name,
+      fail( "$&parse", "%s: %s", in->name == NULL ? SHNAME : in->name,
             esstrerror( errno ) );
     return EOF;
   }
