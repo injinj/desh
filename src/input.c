@@ -266,9 +266,13 @@ tty_read( Input *in )
   int r;
   Boolean is_signal;
 
-  if ( tty == NULL || tty->in_fd != in->fd )
+  if ( tty == NULL || tty->in_fd != in->fd ) {
+    if ( tty != NULL ) {
+      warn( "Linecook: Reinitializing in_fd" );
+    }
     if ( tty_init( in ) != 0 )
       return -1;
+  }
   /* set the current prompts */
   for ( r = 0; r < TTYP_MAX; r++ ) {
     if ( prompt[ r ] != NULL &&
