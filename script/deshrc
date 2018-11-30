@@ -145,6 +145,95 @@ fn fgcolor {
 # prompt[ 8 ] is ouch / bell
 # prompt[ 9 ] is left select cursor
 # prompt[ 10 ] is right select cursor
+
+prompt_git_status = 'initial'
+
+fn git_branch_decoder {
+  let ( branch   = ''
+        upstream = ''
+        ahead    = 0
+        untacked = 0
+        modified = 0
+        renamed  = 0
+        deleted  = 0
+        added    = 0
+        indexed  = 0
+        other    = 0
+        r        = ''
+        i        = <={%read} ) {
+    while {$#i :gt 0} {
+      let ( j = <={%split ' ' $i} ) {
+        if {~ $j(1) '##'} {
+          let ( k = <={%split '...' $j(2)} ) {
+            branch   = $k(1)
+            upstream = $k(2)
+          }
+          # match [ahead 1] or [behind 1]
+          if {$#j :gt 2} {
+            let ( where = <={%split '[' $j(3)}
+                  count = <={%split ']' $j(4)} ) {
+              if {~ $where 'ahead'} {
+                ahead = $count
+              } {~ $where 'behind'} {
+                ahead = <={%neg $count}
+              }
+            }
+          }
+        } {~ $j(1) '??'} {
+          untracked = <={%sum $untracked 1}
+        } {~ $j(1) *M*} {
+          modified = <={%sum $modified 1}
+        } {~ $j(1) *R*} {
+          # renamed
+          indexed = <={%sum $indexed 1}
+        } {~ $j(1) *D*} {
+          # deleted
+          indexed = <={%sum $indexed 1}
+        } {~ $j(1) *A*} {
+          # added
+          indexed = <={%sum $indexed 1}
+        } {
+          other = <={%sum $other 1}
+        }
+      }
+      i = <={%read}
+    }
+    let (BR_COLOR   = ''
+         BR_NOCOLOR = ''
+         no_change  = 0) {
+      no_change = <={%sum $modified $indexed}
+      if {$ahead :ne 0} {
+        no_change = <={%sum $no_change 1}
+      }
+      if {$howmanycolors :ge 8} {
+        if {$no_change :eq 0} {
+          BR_COLOR = <={fgcolor 'Green'}
+        } {
+          BR_COLOR = <={fgcolor 'Red'}
+        }
+        BR_NOCOLOR = <={fgcolor}
+      }
+      r = $BR_COLOR ^ '[' ^ $branch
+      if {$ahead :gt 0} {
+        r = $r ^ '+' ^ $ahead
+      } {$ahead :lt 0} {
+        r = $r ^ '-' ^ $ahead
+      } {
+        r = $r
+      }
+      r = $r ^ ']'
+      if {$modified :gt 0} {
+        r = $r ^ '~' ^ $modified
+      }
+      if {$indexed :gt 0} {
+        r = $r ^ '+' ^ $indexed
+      }
+      r = $r ^ $BR_NOCOLOR
+      echo -n $r
+    }
+  }
+}
+
 fn set_prompt_256 {
   # used to turn color escape off, normal text mode
   let (NO_COLOR      = <={fgcolor}
@@ -166,12 +255,14 @@ fn set_prompt_256 {
        SEL1_COLOR    = <={fgcolor 'HotPink'}
        SEL2_COLOR    = <={fgcolor 'HotPink'}) {
 
+# take out for now, causes unruly scrollbar
+# $TIME_COLOR    ^ '\@'   ^ $NO_COLOR ^ '\n' ^
 
   prompt = ( $USER_COLOR    ^ '\u'   ^ $NO_COLOR ^ '@'  ^
              $HOST_COLOR    ^ '\h'   ^ $NO_COLOR ^ ':'  ^
              $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
-             $TTY_COLOR     ^ '\l'   ^ $NO_COLOR ^ ' '  ^
-             $TIME_COLOR    ^ '\@'   ^ $NO_COLOR ^ '\n' ^
+             $prompt_git_status      ^ ' ' ^
+             $TTY_COLOR     ^ '\l'   ^ $NO_COLOR ^ '\n'  ^
              $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
              $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
              $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
@@ -186,7 +277,7 @@ fn set_prompt_256 {
   }
 }
 
-fn set_prompt_16 {
+fn set_prompt_8 {
   # used to turn color escape off, normal text mode
   let (NO_COLOR      = <={fgcolor}
        # some colors used below
@@ -211,8 +302,8 @@ fn set_prompt_16 {
   prompt = ( $USER_COLOR    ^ '\u'   ^ $NO_COLOR ^ '@'  ^
              $HOST_COLOR    ^ '\h'   ^ $NO_COLOR ^ ':'  ^
              $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
-             $TTY_COLOR     ^ '\l'   ^ $NO_COLOR ^ ' '  ^
-             $TIME_COLOR    ^ '\@'   ^ $NO_COLOR ^ '\n' ^
+             $prompt_git_status      ^ ' ' ^
+             $TTY_COLOR     ^ '\l'   ^ $NO_COLOR ^ '\n'  ^
              $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
              $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
              $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
@@ -228,7 +319,7 @@ fn set_prompt_16 {
 }
 
 fn set_prompt_nocolor {
-  prompt = ( '\u@\h:\w\R\l \@\n[\!]; '
+  prompt = ( '\u@\h:\w\R' ^ $prompt_git_status ^ ' \l\n[\!]; '
              '> '
              '<-i'
              '|=c'
@@ -242,18 +333,39 @@ fn set_prompt_nocolor {
 }
 
 howmanycolors = `{tput colors}
-if {$howmanycolors :ge 16} {
-  if {$howmanycolors :ge 256} {
-    set_prompt_256
+
+fn update_prompt {
+  if {$howmanycolors :ge 8} {
+    if {$howmanycolors :ge 256} {
+      set_prompt_256
+    } {
+      set_prompt_8
+    }
   } {
-    set_prompt_16
+    set_prompt_nocolor
   }
+}
+
+fn update_prompt_git_status {
+  let ( pgs = $prompt_git_status ) {
+    if {access -d .git && access -x /usr/bin/git} {
+      prompt_git_status = `{/usr/bin/git status --porcelain --branch | git_branch_decoder}
+    } {
+      prompt_git_status = ''
+    }
+    if {!~ $pgs $prompt_git_status} {
+      update_prompt
+    }
+  }
+}
+
+update_prompt_git_status
+
+if {$howmanycolors :ge 8} {
   # use ls colors
   imply ls '--color=auto' -aFC
   # use grep colors
   imply grep '--color=auto'
-} {
-  set_prompt_nocolor
 }
 
 #
@@ -320,6 +432,7 @@ let (cd = <={%whatis cd}) {
       if {~ $TERM xterm*} {
         echo  -n <={get_xterm_title}
       }
+      update_prompt_git_status
     }
   }
 }
