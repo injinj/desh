@@ -99,7 +99,7 @@ that port.
 Make sure to set the TERM env var to one with colors, where 'tput colors'
 returns >= 8.  With xterm, I add this to my <b>~/.Xresources</b>:
 
-```console
+```
 XTerm*termName: xterm-256color
 ```
 
