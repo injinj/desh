@@ -96,6 +96,15 @@ these will work,  CentOS 6 does not work without adding utf-32 glibc support for
 linecook.  That shouldn't be terribly difficult, but I don't have a reason for
 that port.
 
+Make sure to set the TERM env var to one with colors, where 'tput colors'
+returns >= 8.  With xterm, I add this to my <b>~/.Xresources</b>:
+
+```console
+XTerm*termName: xterm-256color
+```
+
+The default TERM var is xterm, even though it is capable of displaying colors.
+
 ## es 0.9
 
 This is the README file for es, version 0.9-beta1
