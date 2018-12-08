@@ -14,6 +14,8 @@ BuildRequires:  chrpath
 BuildRequires:  byacc
 BuildRequires:  linecook
 BuildRequires:  libdecnumber
+BuildRequires:  pcre2-devel
+Requires:       pcre2
 Requires:       linecook
 Requires:       libdecnumber
 Requires(post): /sbin/ldconfig
