@@ -55,7 +55,7 @@ thread_lib  := -pthread -lrt
 lc_lib      := linecook/$(libd)/liblinecook.a
 dec_lib     := libdecnumber/$(libd)/libdecnumber.a
 lnk_lib     := $(lc_lib) $(dec_lib)
-dlnk_lib    := -Llinecook/$(libd) -llinecook -Llibdecnumber/$(libd) -ldecnumber
+dlnk_lib    := -Llinecook/$(libd) -llinecook -Llibdecnumber/$(libd) -ldecnumber -lpcre2-32
 malloc_lib  :=
 
 # before include, that has srpm target
@@ -114,8 +114,8 @@ src/sigmsgs.c: /usr/include/bits/signum.h
 	cat /usr/include/bits/signum*.h | script/mksignal > src/sigmsgs.c
 
 esdump_objs := $(objd)/dump.o $(objd)/main.o $(common_objs) 
-esdump_lnk  := $(lnk_lib)
-$(bind)/esdump: $(esdump_objs) $(esdump_lnk)
+esdump_lnk  := $(lnk_lib) -lpcre2-32
+$(bind)/esdump: $(esdump_objs) $(lnk_lib)
 
 all_exes += $(bind)/desh
 
