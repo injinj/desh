@@ -333,6 +333,15 @@ fn set_prompt_nocolor {
 }
 
 howmanycolors = `{tput colors}
+if {$howmanycolors :lt 8} {
+  # force xterm to have colors
+  if {~ $TERM xterm*} {
+    howmanycolors = 8
+  # force linux console to have colors
+  } {~ $TERM linux} {
+    howmanycolors = 8
+  }
+}
 
 fn update_prompt {
   if {$howmanycolors :ge 8} {
