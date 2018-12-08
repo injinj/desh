@@ -6,7 +6,7 @@ date   := $(shell date +"%a %b %d %Y")
 major_num   := 1
 minor_num   := 1
 patch_num   := 0
-build_num   := 14
+build_num   := 15
 version     := $(major_num).$(minor_num).$(patch_num)
 ver_build   := $(version)-$(build_num)
 
