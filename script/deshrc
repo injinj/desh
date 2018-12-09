@@ -132,9 +132,12 @@ fn fgcolor {
   }
 }
 
-# prompt[ 0 ] is primary proomt;  2 lines, tty and time are right justified
-# <user>@<host>:<pwd>                                <tty> <time>
-# [hist#]; ls
+# prompt[ 0 ] is primary proomt;  this is used below:
+#  '\u@\h:\w\R' ^ $prompt_git_status ^ ' \l ' $os_container_string ^ '\n[\!]; '
+#
+# <user>@<host>:<pwd>                     [git-status] <tty> <container-id>
+# [hist#]; 
+#
 # prompt[ 1 ] is secondary prompt for line continuations
 # prompt[ 2 ] is vi insert mode
 # prompt[ 3 ] is vi command mode
@@ -146,7 +149,10 @@ fn fgcolor {
 # prompt[ 9 ] is left select cursor
 # prompt[ 10 ] is right select cursor
 
+# on 'cd', this is set to 'git status' if git is present
 prompt_git_status = 'initial'
+# this can be set later to display a container id on the right of the prompt
+os_container_string = ''
 
 fn git_branch_decoder {
   let ( branch   = ''
@@ -262,7 +268,8 @@ fn set_prompt_256 {
              $HOST_COLOR    ^ '\h'   ^ $NO_COLOR ^ ':'  ^
              $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
              $prompt_git_status      ^ ' ' ^
-             $TTY_COLOR     ^ '\l'   ^ $NO_COLOR ^ '\n'  ^
+             $TTY_COLOR     ^ '\l'   ^ ' ' ^
+             $os_container_string    ^ $NO_COLOR ^ '\n' ^
              $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
              $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
              $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
@@ -303,7 +310,8 @@ fn set_prompt_8 {
              $HOST_COLOR    ^ '\h'   ^ $NO_COLOR ^ ':'  ^
              $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
              $prompt_git_status      ^ ' ' ^
-             $TTY_COLOR     ^ '\l'   ^ $NO_COLOR ^ '\n'  ^
+             $TTY_COLOR     ^ '\l'   ^ ' ' ^
+             $os_container_string    ^ $NO_COLOR ^ '\n'  ^
              $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
              $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
              $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
@@ -319,7 +327,8 @@ fn set_prompt_8 {
 }
 
 fn set_prompt_nocolor {
-  prompt = ( '\u@\h:\w\R' ^ $prompt_git_status ^ ' \l\n[\!]; '
+  prompt = ( '\u@\h:\w\R' ^ $prompt_git_status ^ ' \l ' ^
+             $os_container_string ^ '\n[\!]; '
              '> '
              '<-i'
              '|=c'
