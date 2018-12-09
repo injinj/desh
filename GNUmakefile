@@ -110,12 +110,14 @@ src/y.tab.c include/desh/token.h: src/parse.y
 src/initial.c: $(bind)/esdump script/initial.es
 	$(bind)/esdump < script/initial.es > src/initial.c
 
-src/sigmsgs.c: /usr/include/bits/signum.h
-	cat /usr/include/bits/signum*.h | script/mksignal > src/sigmsgs.c
+src/sigmsgs.c: $(bind)/mksignal
+	$(bind)/mksignal > src/sigmsgs.c
 
 esdump_objs := $(objd)/dump.o $(objd)/main.o $(common_objs) 
 esdump_lnk  := $(lnk_lib) -lpcre2-32
 $(bind)/esdump: $(esdump_objs) $(lnk_lib)
+mksignal_objs := $(objd)/mksignal.o
+$(bind)/mksignal: $(mksignal_objs)
 
 all_exes += $(bind)/desh
 
