@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <errno.h>
 
 
 const char *
@@ -55,6 +56,7 @@ main( int argc, char *argv[] )
   }
   if ( fp == NULL || n == 0 ) {
     perror( "kill" );
+    printf( "#error \"/bin/kill -L (errno=%d)\"\n", errno );
     return 1;
   }
   buf[ n ] = '\0';
