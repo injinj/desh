@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ] && which add-shell >/dev/null; then
+  add-shell /usr/bin/desh
+fi
+
+#DEBHELPER#

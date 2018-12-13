@@ -31,7 +31,7 @@ cpplink     := $(CC)
 gcc_wflags  := -Wall -Werror
 fpicflags   := -fPIC
 soflag      := -shared
-rpath       := -Wl,-rpath,$(libd),-rpath,linecook/$(libd),-rpath,libdecnumber/$(libd)
+rpath1      := -Wl,-rpath,$(libd)
 
 ifdef DEBUG
 default_cflags := -ggdb
@@ -39,9 +39,11 @@ else
 default_cflags := -O3 -ggdb
 endif
 # rpmbuild uses RPM_OPT_FLAGS
+ifeq ($(RPM_OPT_FLAGS),)
 CFLAGS ?= $(default_cflags)
-#RPM_OPT_FLAGS ?= $(default_cflags)
-#CFLAGS ?= $(RPM_OPT_FLAGS)
+else
+CFLAGS ?= $(RPM_OPT_FLAGS)
+endif
 cflags := $(gcc_wflags) $(CFLAGS) $(arch_cflags)
 
 INCLUDES    ?= -Iinclude
@@ -52,18 +54,61 @@ cpp_lnk     :=
 sock_lib    :=
 math_lib    := -lm
 thread_lib  := -pthread -lrt
+
+# test submodules exist (they don't exist for dist_rpm, dist_dpkg targets)
+have_lc_submodule  := $(shell if [ -d ./linecook ]; then echo yes; else echo no; fi )
+have_dec_submodule := $(shell if [ -d ./libdecnumber ]; then echo yes; else echo no; fi )
+
+lnk_lib     :=
+dlnk_lib    :=
+
+# if building submodules, reference them rather than the libs installed
+ifeq (yes,$(have_lc_submodule))
 lc_lib      := linecook/$(libd)/liblinecook.a
+lnk_lib     += $(lc_lib)
+dlnk_lib    += -Llinecook/$(libd) -llinecook
+rpath2       = ,-rpath,linecook/$(libd)
+else
+lnk_lib     += -llinecook
+dlnk_lib    += -llinecook
+endif
+
+ifeq (yes,$(have_dec_submodule))
 dec_lib     := libdecnumber/$(libd)/libdecnumber.a
-lnk_lib     := $(lc_lib) $(dec_lib)
-dlnk_lib    := -Llinecook/$(libd) -llinecook -Llibdecnumber/$(libd) -ldecnumber -lpcre2-32
+lnk_lib     += $(dec_lib)
+dlnk_lib    += -Llibdecnumber/$(libd) -ldecnumber
+rpath3       = ,-rpath,libdecnumber/$(libd)
+else
+lnk_lib     += -ldecnumber
+dlnk_lib    += -ldecnumber
+endif
+
+rpath        = $(rpath1)$(rpath2)$(rpath3)
+dlnk_lib    += -lpcre2-32
+lnk_lib     += -lpcre2-32
 malloc_lib  :=
 
 # before include, that has srpm target
 .PHONY: everything
-everything: $(lc_lib) $(dec_lib) all
+everything: $(dec_lib) $(lc_lib) all
 
-# version vars
+# build submodules if have them
+ifeq (yes,$(have_dec_submodule))
+$(dec_lib):
+	$(MAKE) -C libdecnumber
+endif
+ifeq (yes,$(have_lc_submodule))
+$(lc_lib):
+	$(MAKE) -C linecook
+endif
+
+# copr/fedora build (with version env vars)
+# copr uses this to generate a source rpm with the srpm target
 -include .copr/Makefile
+
+# debian build (debuild)
+# target for building installable deb: dist_dpkg
+-include deb/Makefile
 
 # targets filled in below
 all_exes    :=
@@ -78,6 +123,7 @@ common_files  := access closure conv dict eval except fd gc glob \
 		 sigmsgs signal split status str syntax term token tree util \
 		 var vec version y.tab
 all_files     := $(common_files) main initial dump
+# submodule includes
 input_includes   := -Ilinecook/include
 decimal_includes := -Ilibdecnumber/include
 
@@ -114,8 +160,8 @@ src/sigmsgs.c: $(bind)/mksignal
 	$(bind)/mksignal > src/sigmsgs.c
 
 esdump_objs := $(objd)/dump.o $(objd)/main.o $(common_objs) 
-esdump_lnk  := $(lnk_lib) -lpcre2-32
-$(bind)/esdump: $(esdump_objs) $(lnk_lib)
+esdump_lnk  := $(lnk_lib)
+$(bind)/esdump: $(esdump_objs) $(lc_lib) $(dec_lib)
 mksignal_objs := $(objd)/mksignal.o
 $(bind)/mksignal: $(mksignal_objs)
 
@@ -123,25 +169,7 @@ all_exes += $(bind)/desh
 
 all_dirs := $(bind) $(libd) $(objd) $(dependd)
 
-gen_files += src/sigmsgs.c src/y.tab.c include/desh/token.h
-
-# if sub modules initialized, use those, otherwise use installed
-# (git submodule update --init --recursive)
-$(lc_lib):
-	if [ -d linecook -a -f linecook/GNUmakefile ] ; then \
-	  $(MAKE) -C linecook ; \
-	else \
-	  mkdir -p `dirname $(lc_lib)` ; \
-	  ln -s /usr/lib64/liblinecook.* `dirname $(lc_lib)` ; \
-	fi
-
-$(dec_lib):
-	if [ -d libdecnumber -a -f libdecnumber/GNUmakefile ] ; then \
-	  $(MAKE) -C libdecnumber ; \
-	else \
-	  mkdir -p `dirname $(dec_lib)` ; \
-	  ln -s /usr/lib64/libdecnumber.* `dirname $(dec_lib)` ; \
-	fi
+gen_files += src/initial.c src/sigmsgs.c src/y.tab.c include/desh/token.h
 
 # the default targets
 .PHONY: all
@@ -154,8 +182,16 @@ $(dependd):
 # remove target bins, objs, depends
 .PHONY: clean
 clean:
-	rm -r -f $(bind) $(libd) $(objd) $(dependd)
+	rm -rf $(bind) $(libd) $(objd) $(dependd)
 	if [ "$(build_dir)" != "." ] ; then rmdir $(build_dir) ; fi
+	rm -f $(gen_files) y.output
+
+.PHONY: clean_dist
+clean_dist:
+	rm -rf dpkgbuild rpmbuild
+
+.PHONY: clean_all
+clean_all: clean clean_dist
 
 # force a remake of depend using 'make -B depend'
 .PHONY: depend
@@ -165,8 +201,9 @@ $(dependd)/depend.make: $(dependd) $(all_depends)
 	@echo "# depend file" > $(dependd)/depend.make
 	@cat $(all_depends) >> $(dependd)/depend.make
 
+# remove the relative link run paths
 .PHONY: dist_bins
-dist_bins: $(gen_files) $(all_libs) $(bind)/desh
+dist_bins: all
 	chrpath -d $(libd)/libdesh.so
 	chrpath -d $(bind)/desh
 
@@ -176,6 +213,28 @@ dist_rpm: srpm
 
 # dependencies made by 'make depend'
 -include $(dependd)/depend.make
+
+ifeq ($(DESTDIR),)
+# 'sudo make install' puts things in /usr/local/lib, /usr/local/include
+install_prefix = /usr/local
+else
+# debuild uses DESTDIR to put things into debian/libdecnumber/usr
+install_prefix = $(DESTDIR)/usr
+endif
+
+install: dist_bins
+	install -d $(install_prefix)/lib $(install_prefix)/bin
+	install -d $(install_prefix)/include/desh $(install_prefix)/share/man/man1
+	for f in $(libd)/libdesh.* ; do \
+	if [ -h $$f ] ; then \
+	cp -a $$f $(install_prefix)/lib ; \
+	else \
+	install $$f $(install_prefix)/lib ; \
+	fi ; \
+	done
+	install $(bind)/desh $(install_prefix)/bin
+	install -m 644 include/desh/*.h $(install_prefix)/include/desh
+	install -m 644 doc/es.1 $(install_prefix)/share/man/man1/desh.1
 
 $(objd)/%.o: src/%.cpp
 	$(cpp) $(cflags) $(cppflags) $(includes) $(defines) $($(notdir $*)_includes) $($(notdir $*)_defines) -c $< -o $@

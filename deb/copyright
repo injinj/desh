@@ -1,0 +1,10 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Source: https://www.github.com/injinj/desh
+Comment:
+ Desh is a derivative of es, an extensible shell.
+
+Files: *
+Copyright: Copyright (C) Paul Haahr & Byron Rakitzis
+ Es is in the public domain. We hold no copyrights or patents on the source
+ code, and do not place any restrictions on its distribution. We would
+ appreciate it if any distributions do credit the authors.

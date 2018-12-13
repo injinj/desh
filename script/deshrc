@@ -9,6 +9,17 @@
 #   /etc/deshrc        # only interactive shell starts
 #   ~/.deshrc
 
+# unalias:
+# remove fn-X
+# reverses imply and alias below
+fn unalias {
+  if {$#* :gt 0} {
+    fn-$1=
+  } {
+    echo 'usage: unalias cmd'
+  }
+}
+
 # imply:
 # prepends arguments to subsequent execution
 #
@@ -22,12 +33,17 @@
 # cmd -bongo hello
 #
 fn imply {
-  let ((cmd args) = $*) {
-    let (cmd2 = <={%whatis $cmd}) {
-      fn $cmd {
-        $cmd2 $args $*
+  if {$#* :gt 1} {
+    let ((cmd args) = $*) {
+      unalias $cmd
+      let (cmd2 = <={%whatis $cmd}) {
+        fn $cmd {
+          $cmd2 $args $*
+        }
       }
     }
+  } {
+    echo 'usage: imply cmd args'
   }
 }
 
@@ -42,12 +58,17 @@ fn imply {
 # imply ls '--color=auto'
 #
 fn alias {
-  let ((name cmd args) = $*) {
-    let (cmd2 = <={%whatis $cmd}) {
-      fn $name {
-        $cmd2 $args $*
+  if {$#* :gt 1} {
+    let ((name cmd args) = $*) {
+      unalias $name
+      let (cmd2 = <={%whatis $cmd}) {
+        fn $name {
+          $cmd2 $args $*
+        }
       }
     }
+  } {
+    echo 'usage: alias name cmd args'
   }
 }
 
@@ -153,6 +174,27 @@ fn fgcolor {
 prompt_git_status = 'initial'
 # this can be set later to display a container id on the right of the prompt
 os_container_string = ''
+
+if {access -x /usr/bin/lsb_release} {
+  osver=`{/usr/bin/lsb_release -rs | sed 's/[.].*//'}
+  osdist=`{/usr/bin/lsb_release -i | sed 's/.*:\t//'}
+
+  if {~ $osdist 'Fedora'} {
+    os_container_string = 'FC' ^ $osver
+  } {~ $osdist 'CentOS' || ~ $osdist 'RedHat'} {
+    os_container_string = 'RH' ^ $osver
+  } {~ $osdist 'Debian'} {
+    os_container_string = 'DEB' ^ $osver
+  } {~ $osdist 'Ubuntu'} {
+    os_container_string = 'UB' ^ $osver
+  } {~ $osdist 'SUSE' || ~ $osdist 'OpenSUSE'} {
+    os_container_string = 'SS' ^ $osver
+  } {~ $osdist 'Slackware'} {
+    os_container_string = 'SL' ^ $osver
+  } {~ $osdist 'Arch'} {
+    os_container_string = 'AR' ^ $osver
+  }
+}
 
 fn git_branch_decoder {
   let ( branch   = ''
@@ -443,9 +485,10 @@ fn get_xterm_title {
 }
 
 # make 'cd' set the xterm title
-let (cd = <={%whatis cd}) {
+# cd is already an alias in initial.es, don't unalias it here
+let (chdir = <={%whatis cd}) {
   fn cd {
-    if {$cd $*} {
+    if {$chdir $*} {
       PWD = `{pwd}
       if {~ $TERM xterm*} {
         echo  -n <={get_xterm_title}
@@ -454,6 +497,7 @@ let (cd = <={%whatis cd}) {
     }
   }
 }
+
 # set the title now
 if {~ $TERM xterm*} {
   echo  -n <={get_xterm_title}

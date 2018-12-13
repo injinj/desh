@@ -65,7 +65,7 @@ $ FC27_x86_64/bin/desh
 ;
 ```
 
-That should be it.  The target will be in a build directory called FC27_x86_64
+That should be it.  The target will be in a build directory called FC28_x86_64
 or RH7_x86_64 or UB9_x86_64, based on the Linux distro installed.  There are
 run paths inserted into the binary so that it finds the shared libraries when
 run from the make directory for debugging.  These paths are removed for the rpm
@@ -76,13 +76,13 @@ before the desh rpm itself is built and installed.
 ```console
 $ cd linecook
 $ make dist_rpm
-$ sudo rpm -i rpmbuild/RPMS/x86_64/linecook-1.0.0-7.fc27.x86_64.rpm
+$ sudo rpm -i rpmbuild/RPMS/x86_64/linecook-1.1.0-14.fc28.x86_64.rpm
 $ cd ../libdecnumber
 $ make dist_rpm
-$ sudo rpm -i rpmbuild/RPMS/x86_64/libdecnumber-3.61.0-4.fc27.x86_64.rpm
+$ sudo rpm -i rpmbuild/RPMS/x86_64/libdecnumber-3.61.0-5.fc28.x86_64.rpm
 $ cd ..
 $ make dist_rpm
-$ sudo rpm -i rpmbuild/RPMS/x86_64/desh-1.0.0-8.fc27.x86_64.rpm
+$ sudo rpm -i rpmbuild/RPMS/x86_64/desh-1.1.0-16.fc28.x86_64.rpm
 ```
 
 Uninstalling the rpms is with the -e option:
@@ -91,10 +91,31 @@ Uninstalling the rpms is with the -e option:
 $ sudo rpm -e linecook libdecnumber desh
 ```
 
-I've built CentOS 7, Fedora 27, Fedora 28, Fedora 29 x86_64, so I know at least
-these will work,  CentOS 6 does not work without adding utf-32 glibc support for
-linecook.  That shouldn't be terribly difficult, but I don't have a reason for
-that port.
+For Debian based, there is a dist_dpkg target, which will create a debian
+package.
+
+```console
+$ cd linecook
+$ make dist_dpkg
+$ sudo dpkg -i dpkgbuild/linecook_1.1.0-14_amd64.deb
+$ cd ../libdecnumber
+$ make dist_dpkg
+$ sudo dpkg -i dpkgbuild/libdecnumber_3.61.0-5_amd64.deb
+$ cd ..
+$ make dist_dpkg
+$ sudo dpkg -i dpkgbuild/desh_1.1.0-16_amd64.deb
+```
+
+Uninstalling dpkgs:
+
+```console
+$ sudo dpkg -r linecook libdecnumber desh
+```
+
+I've built CentOS 7, Fedora 27, Fedora 28, Fedora 29, Debian 9 x86_64, so I
+know at least these will work,  CentOS 6 does not work without adding utf-32
+glibc support for linecook.  That shouldn't be terribly difficult, but I don't
+have a reason for that port.
 
 Make sure to set the TERM env var to one with colors, where 'tput colors'
 returns >= 8.  With xterm, I add this to my <b>~/.Xresources</b>:

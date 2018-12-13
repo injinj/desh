@@ -1,0 +1,14 @@
+Source: desh
+Section: shells
+Priority: optional
+Maintainer: Chris Anderson <gchrisanderson@gmail.com>
+Build-Depends: debhelper (>= 9), libpcre2-dev, bison, linecook, libdecnumber
+Standards-Version: 3.9.5
+Homepage: https://www.github.com/injinj/desh
+
+Package: desh
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Extensible shell based on es
+ Desh is a derivative of es, the extensible shell based on rc, the
+ plan9 shell.

@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = remove ] && which remove-shell >/dev/null; then
+  remove-shell /usr/bin/desh
+fi
+
+#DEBHELPER#
