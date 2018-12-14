@@ -225,6 +225,7 @@ endif
 install: dist_bins
 	install -d $(install_prefix)/lib $(install_prefix)/bin
 	install -d $(install_prefix)/include/desh $(install_prefix)/share/man/man1
+	install -d $(install_prefix)/etc
 	for f in $(libd)/libdesh.* ; do \
 	if [ -h $$f ] ; then \
 	cp -a $$f $(install_prefix)/lib ; \
@@ -233,6 +234,7 @@ install: dist_bins
 	fi ; \
 	done
 	install $(bind)/desh $(install_prefix)/bin
+	install -m 644 script/deshrc $(install_prefix)/etc/deshrc
 	install -m 644 include/desh/*.h $(install_prefix)/include/desh
 	install -m 644 doc/es.1 $(install_prefix)/share/man/man1/desh.1
 

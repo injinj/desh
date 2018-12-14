@@ -60,15 +60,31 @@ rm -rf %{buildroot}
 %post
 echo "${RPM_INSTALL_PREFIX}/lib64" > /etc/ld.so.conf.d/%{name}.conf
 cp -a "${RPM_INSTALL_PREFIX}/share/doc/%{name}/%{name}rc" /etc/%{name}rc
-ln -s -f "${RPM_INSTALL_PREFIX}/share/doc/%{name}/es.1" /usr/share/man/man1/%{name}.1
+if [ -d "${RPM_INSTALL_PREFIX}/share/man/man1" ] ; then
+  ln -s -f "${RPM_INSTALL_PREFIX}/share/doc/%{name}/es.1" "${RPM_INSTALL_PREFIX}/share/man/man1/%{name}.1"
+fi
+if [ $1 -eq 1 ] ; then
+  if [ ! -f %{_sysconfdir}/shells ] ; then
+    echo "%{_bindir}/%{name}" > %{_sysconfdir}/shells
+    echo "${RPM_INSTALL_PREFIX}/bin/%{name}" >> %{_sysconfdir}/shells
+  else
+    grep -q "^%{_bindir}/%{name}$" %{_sysconfdir}/shells || echo "%{_bindir}/%{name}" >> %{_sysconfdir}/shells
+    grep -q "^${RPM_INSTALL_PREFIX}/bin/%{name}$" %{_sysconfdir}/shells || echo "${RPM_INSTALL_PREFIX}/bin/%{name}" >> %{_sysconfdir}/shells
+  fi
+fi
 /sbin/ldconfig
 
 %postun
 # if uninstalling
 if [ $1 -eq 0 ] ; then
-rm -f /etc/ld.so.conf.d/%{name}.conf
-rm -f /etc/%{name}rc
-rm -f /usr/share/man/man1/%{name}.1
+  rm -f /etc/ld.so.conf.d/%{name}.conf
+  rm -f /etc/%{name}rc
+  if [ -h "${RPM_INSTALL_PREFIX}/share/man/man1/%{name}.1" ] ; then
+    rm -f "${RPM_INSTALL_PREFIX}/share/man/man1/%{name}.1"
+  fi
+  rm -f /usr/share/man/man1/%{name}.1
+  sed -i '\!^%{_bindir}/%{name}$!d' %{_sysconfdir}/shells
+  sed -i '\!^${RPM_INSTALL_PREFIX}/bin/%{name}$!d' %{_sysconfdir}/shells
 fi
 /sbin/ldconfig
 
