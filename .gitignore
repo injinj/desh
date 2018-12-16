@@ -1,9 +1,7 @@
 # RPM build
 /rpmbuild
 # Build temporaries
-/RH5_*
-/RH6_*
-/RH7_*
+/RH*
 /FC*
 /UB*
 /DEB*
