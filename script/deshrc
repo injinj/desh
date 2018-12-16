@@ -181,7 +181,7 @@ if {access -x /usr/bin/lsb_release} {
 
   if {~ $osdist 'Fedora'} {
     os_container_string = 'FC' ^ $osver
-  } {~ $osdist 'CentOS' || ~ $osdist 'RedHat'} {
+  } {~ $osdist 'CentOS' || ~ $osdist 'RedHat' || ~ $osdist 'RedHatEnterprise'} {
     os_container_string = 'RH' ^ $osver
   } {~ $osdist 'Debian'} {
     os_container_string = 'DEB' ^ $osver
