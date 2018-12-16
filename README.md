@@ -59,7 +59,7 @@ byacc and the git submodules.  I'm using Fedora 27 below.
 $ git clone git@github.com:injinj/desh.git
 $ cd desh
 $ git submodule update --init --recursive
-$ sudo dnf install gcc-c++ make byacc chrpath
+$ sudo dnf install gcc-c++ make byacc chrpath pcre2-devel
 $ make
 $ FC27_x86_64/bin/desh
 ;
