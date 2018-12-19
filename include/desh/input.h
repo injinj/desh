@@ -36,7 +36,7 @@ extern void unget(Input *in, int c);
 extern Boolean heredoc_input;
 extern Boolean reset_terminal;
 extern void yyerror(char *s);
-
+extern void initgetenv(void);
 
 /* token.c */
 

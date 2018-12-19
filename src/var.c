@@ -4,6 +4,7 @@
 #include <desh/gc.h>
 #include <desh/var.h>
 #include <desh/term.h>
+#include <desh/input.h>
 
 #if PROTECT_ENV
 #define	ENV_FORMAT	"%F=%W"
@@ -350,6 +351,7 @@ extern void initvars(void) {
 	vars = mkdict();
 	noexport = NULL;
 	env = mkvector(10);
+        initgetenv();
 }
 
 /* importvar -- import a single environment variable */

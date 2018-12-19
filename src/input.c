@@ -205,6 +205,76 @@ scan_dict_env_complete( void *cl,  char *key,  void *value )
   }
 }
 
+/* getenv -- fake version of getenv for readline (or other libraries) */
+static char *
+esgetenv( const char *name )
+{
+  List *value = varlookup( name, NULL );
+  if ( value == NULL )
+    return NULL;
+  else {
+    char *export;
+    static Dict *  envdict;
+    static Boolean initialized = FALSE;
+    Ref( char *, string, NULL );
+
+    gcdisable();
+    if ( !initialized ) {
+      initialized = TRUE;
+      envdict     = mkdict();
+      globalroot( &envdict );
+    }
+
+    string = dictget( envdict, name );
+    if ( string != NULL )
+      efree( string );
+
+    export = str( "%W", value );
+    string = ealloc( strlen( export ) + 1 );
+    strcpy( string, export );
+    envdict = dictput( envdict, (char *) name, string );
+
+    gcenable();
+    RefReturn( string );
+  }
+}
+
+static char *
+stdgetenv( const char *name )
+{
+  extern char **environ;
+  int           len;
+  const char *  np;
+  char **       p, *c;
+
+  if ( name == NULL || environ == NULL )
+    return NULL;
+  for ( np = name; *np && *np != '='; ++np )
+    continue;
+  len = np - name;
+  for ( p = environ; ( c = *p ) != NULL; ++p ) {
+    if ( strncmp( c, name, len ) == 0 && c[ len ] == '=' ) {
+      return ( c + len + 1 );
+    }
+  }
+  return NULL;
+}
+
+static char *stdgetenv(const char *);
+static char *(*realgetenv)(const char *) = stdgetenv;
+
+char *
+getenv( const char *name )
+{
+  return realgetenv( name );
+}
+
+void
+initgetenv( void )
+{
+  realgetenv = esgetenv;
+}
+
 static int
 tty_complete( LineCook *lc,  const char *buf,  size_t off,  size_t len,
               int comp_type )
