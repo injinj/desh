@@ -2,7 +2,7 @@ Source: desh
 Section: shells
 Priority: optional
 Maintainer: Chris Anderson <gchrisanderson@gmail.com>
-Build-Depends: debhelper (>= 9), libpcre2-dev, bison, linecook, libdecnumber
+Build-Depends: debhelper (>= 9), libpcre2-dev, bison, linecook, libdecnumber, chrpath
 Standards-Version: 3.9.5
 Homepage: https://www.github.com/injinj/desh
 
