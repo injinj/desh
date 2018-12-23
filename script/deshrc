@@ -300,8 +300,8 @@ fn set_prompt_256 {
        COMP_COLOR    = <={fgcolor 'Magenta'}
        VISU_COLOR    = <={fgcolor 'Cyan'}
        OUCH_COLOR    = <={fgcolor 'BrightRed'}
-       SEL1_COLOR    = <={fgcolor 'HotPink'}
-       SEL2_COLOR    = <={fgcolor 'HotPink'}) {
+       SEL1_COLOR    = <={fgcolor 'BrightRed'}
+       SEL2_COLOR    = <={fgcolor 'BrightRed'}) {
 
 # take out for now, causes unruly scrollbar
 # $TIME_COLOR    ^ '\@'   ^ $NO_COLOR ^ '\n' ^

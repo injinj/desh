@@ -19,6 +19,7 @@ typedef enum {
 static State w = STATE_NON_WORD;
 static Boolean newline = FALSE;
 static Boolean goterror = FALSE;
+static Boolean dollar = FALSE;
 static size_t bufsize = 0;
 static char *tokenbuf = NULL;
 
@@ -163,13 +164,12 @@ getfds( int fd[ 2 ], int c, int default0, int default1 )
 extern int
 yylex( void )
 {
-  static Boolean dollar = FALSE;
-  const char   * cmd;
-  int            fd[ 2 ],
-                 pipe[ 2 ],
-                 c;
-  size_t         i;    /* The purpose of all these local assignments is to	*/
-  const char   * meta; /* allow optimizing compilers like gcc to load these
+  const char * cmd;
+  int          fd[ 2 ],
+               pipe[ 2 ],
+               c;
+  size_t       i;    /* The purpose of all these local assignments is to	*/
+  const char * meta; /* allow optimizing compilers like gcc to load these
                         */
   char    * buf = tokenbuf;/* values into registers. On a sparc this is a */
   YYSTYPE * y   = &yylval; /* win, in code size *and* execution time */
@@ -194,6 +194,8 @@ top:
   if ( c == EOF )
     return ENDFILE;
   if ( c == 0 ) { /* interactive keyboard ctrl-c */
+interactive_ctrl_c:
+    w = STATE_NON_WORD;
     scanerror( "" );
     return ERROR;
   }
@@ -276,19 +278,37 @@ top:
     case '\'':
       w = STATE_REAL_WORD;
       i = 0;
-      while ( ( c = GETC() ) != '\'' || ( c = GETC() ) == '\'' ) {
-        buf[ i++ ] = c;
-        if ( c == '\n' )
-          print_prompt2();
-        if ( c == EOF ) {
+      for (;;) {
+        if ( ( c = GETC() ) == '\'' ) {
+          if ( ( c = GETC() ) != '\'' ) { /* double quote '' escape */
+            UNGETC( c );
+            break;           /* end of string */
+          }
+        }
+        else if ( c == '\\' ) {
+          c = GETC();
+          if ( c == '\n' ) { /* \<nl> line continuation */
+            print_prompt2();
+            continue;
+          }
+          if ( c != '\'' ) { /* \' == ' escaping quote */
+            UNGETC( c );
+            c = '\\';        /* otherwise literal \ */
+          }
+        }
+        else if ( c == 0 ) /* interactive keyboard ctrl-c */
+          goto interactive_ctrl_c;
+        else if ( c == EOF ) {
           w = STATE_NON_WORD;
           scanerror( "eof in quoted string" );
           return ERROR;
         }
+        buf[ i++ ] = c;
+        if ( c == '\n' )
+          print_prompt2();
         if ( i >= bufsize )
           buf = tokenbuf = erealloc( buf, bufsize *= 2 );
       }
-      UNGETC( c );
       buf[ i ] = '\0';
       y->str   = gcdup( buf );
       return QWORD;
@@ -308,8 +328,7 @@ top:
       c = GETC();
       switch ( c ) {
         case 0: /* interactive keyboard ctrl-c */
-          scanerror( "" );
-          return ERROR;
+          goto interactive_ctrl_c;
         case 'a': *buf = '\a'; break;
         case 'b': *buf = '\b'; break;
         case 'e': *buf = '\033'; break;
@@ -368,10 +387,12 @@ top:
       return QWORD;
 
     case '#':
-      while ( ( c = GETC() ) != '\n' ) /* skip comment until newline */
+      while ( ( c = GETC() ) != '\n' ) { /* skip comment until newline */
         if ( c == EOF )
           return ENDFILE;
-
+        if ( c == 0 )
+          goto interactive_ctrl_c;
+      }
       /* FALLTHROUGH */
     case '\n':
       input->lineno++;
@@ -477,6 +498,7 @@ inityy( void )
 {
   newline = FALSE;
   w       = STATE_NON_WORD;
+  dollar  = FALSE;
   if ( bufsize >
        BUFMAX ) { /* return memory to the system if the buffer got too large */
     efree( tokenbuf );
