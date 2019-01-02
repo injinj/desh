@@ -1,6 +1,7 @@
 /* main.c -- initialization for es ($Revision: 1.3 $) */
 
 #include <desh/es.h>
+#include <desh/input.h>
 #include <locale.h>
 
 #if GCVERBOSE

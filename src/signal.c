@@ -2,6 +2,7 @@
 
 #include <desh/es.h>
 #include <desh/sigmsgs.h>
+#include <desh/input.h>
 
 typedef void (*Sighandler)(int);
 

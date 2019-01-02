@@ -78,6 +78,10 @@ fn-throw	= $&throw
 fn-umask	= $&umask
 fn-wait		= $&wait
 
+# memories..
+fn-%keybind     = $&keybind
+fn-%bindkey     = $&keybind
+
 fn-%read	= $&read
 
 

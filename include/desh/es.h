@@ -289,30 +289,6 @@ extern Boolean isabsolute(char *path);
 extern Boolean streq2(const char *s, const char *t1, const char *t2);
 
 
-/* input.c */
-
-#define MAX_PROMPT_COUNT 16
-extern int prompt2; /* display secondary prompt */
-extern Tree *parse(char **pr);
-extern Tree *parsestring(const char *str);
-extern void sethistory(char *file);
-extern Boolean isinteractive(void);
-extern void initinput(void);
-extern void resetparser(void);
-
-extern List *runfd(int fd, const char *name, int flags);
-extern List *runstring(const char *str, const char *name, int flags);
-
-/* eval_* flags are also understood as runflags */
-#define	run_interactive		 4	/* -i or $0[0] = '-' */
-#define	run_noexec		 8	/* -n */
-#define	run_echoinput		16	/* -v */
-#define	run_printcmds		32	/* -x */
-#define	run_lisptrees		64	/* -L and defined(LISPTREES) */
-#define run_interrupt          128      /* ctrl-c on input */
-
-extern Boolean reset_terminal;
-
 /* opt.c */
 
 extern void esoptbegin(List *list, const char *caller, const char *usage);

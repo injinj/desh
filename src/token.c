@@ -88,7 +88,7 @@ extern void
 print_prompt2( void )
 {
   input->lineno++;
-  prompt2 = 1;
+  is_prompt2 = TRUE;
   /*prompt = prompt2;*/
 }
 

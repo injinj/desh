@@ -4,22 +4,22 @@
 
 #include <desh/es.h>
 #include <desh/prim.h>
-
-#ifdef HAVE_LIBREADLINE
-#define PARSE_AND_BIND( S ) rl_parse_and_bind( S )
-#else
-#define PARSE_AND_BIND( S ) 0
-#endif
+#include <desh/input.h>
 
 /* bind keyboard to a function name */
 static List *
 prim_keybind( List *list, Binding *binding, int evalflags )
 {
-  return mklist(
-           mkstr(
-             str( "%d",
-               PARSE_AND_BIND(
-                 str( "%L", list, " " ) ) ) ), NULL );
+  XRefArray<char *, 32> kb( NULL );
+  int i;
+  {
+    XRef<List *> lp( list );
+    for ( i = 0; lp.ptr != NULL && i < 32; i++ ) {
+      kb.ptr[ i ] = getstr( lp.ptr->term );
+      lp.ptr = lp.ptr->next;
+    }
+  }
+  return mklist( mkstr( str( "%d", keybind( kb.ptr, i ) ) ), NULL );
 }
 
 static List *

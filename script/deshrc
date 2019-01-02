@@ -170,8 +170,10 @@ fn fgcolor {
 # prompt[ 9 ] is left select cursor
 # prompt[ 10 ] is right select cursor
 
+# extra status displayed at end of prompt
+prompt_extra_status = ''
 # on 'cd', this is set to 'git status' if git is present
-prompt_git_status = 'initial'
+prompt_git_status   = 'initial'
 # this can be set later to display a container id on the right of the prompt
 os_container_string = ''
 
@@ -311,7 +313,7 @@ fn set_prompt_256 {
              $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
              $prompt_git_status      ^ ' ' ^
              $TTY_COLOR     ^ '\l'   ^ ' ' ^
-             $os_container_string    ^ $NO_COLOR ^ '\n' ^
+             $os_container_string    ^ $prompt_extra_status ^ $NO_COLOR ^ '\n' ^
              $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
              $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
              $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
@@ -353,7 +355,7 @@ fn set_prompt_8 {
              $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
              $prompt_git_status      ^ ' ' ^
              $TTY_COLOR     ^ '\l'   ^ ' ' ^
-             $os_container_string    ^ $NO_COLOR ^ '\n'  ^
+             $os_container_string    ^ $prompt_extra_status ^ $NO_COLOR ^ '\n' ^
              $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
              $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
              $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
@@ -370,7 +372,7 @@ fn set_prompt_8 {
 
 fn set_prompt_nocolor {
   prompt = ( '\u@\h:\w\R' ^ $prompt_git_status ^ ' \l ' ^
-             $os_container_string ^ '\n[\!]; '
+             $os_container_string ^ $prompt_extra_status ^ '\n[\!]; '
              '> '
              '<-i'
              '|=c'
@@ -494,6 +496,7 @@ let (chdir = <={%whatis cd}) {
         echo  -n <={get_xterm_title}
       }
       update_prompt_git_status
+      return 0
     }
   }
 }

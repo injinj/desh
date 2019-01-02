@@ -3,6 +3,7 @@
 #include <desh/es.h>
 #include <desh/term.h>
 #include <desh/prim.h>
+#include <desh/input.h>
 #include <termios.h> //fixme:make conditionally
 
 /* TODO: the rusage code for the time builtin really needs to be cleaned up */

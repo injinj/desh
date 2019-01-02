@@ -3,6 +3,7 @@
 #include <desh/es.h>
 #include <desh/var.h>
 #include <desh/term.h>
+#include <desh/input.h>
 
 #define	MAXVARNAME 20
 
