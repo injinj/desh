@@ -506,5 +506,174 @@ if {~ $TERM xterm*} {
   echo  -n <={get_xterm_title}
 }
 
+fn _have_fzf {
+  access -x /bin/fzf || access -x /usr/bin/fzf
+}
+
+if {_have_fzf} {
+  # bind ctrl-t for fzf scan
+  %bindkey '\C-t' '&show-fzf'
+  # bind alt-d for directory scan
+  %bindkey '\M-d' '&append-eol' '**' '&show-dirs'
+  # bind ctrl-r for history search
+  %bindkey '\C-r' '&show-history'
+}
+
+# split path/file into dir path where dir exists
+# the dir part is used for find, the file part for fzf query
+fn _split_file_dir_path d f {
+  if {~ $d ''} {     # no path
+    return (. $f)
+  } {access -d $d} { # if dir exists, found split
+    return ($d $f)
+  } {                # split path, go up one dir
+    let (dd = `{dirname $d}
+         ff = `{basename $d}) {
+      if {!~ $f ''} {
+        ff = $ff ^ '/' ^ $f
+      }
+      return <={_split_file_dir_path $dd $ff}
+    }
+  }
+}
+
+# could put these in environment
+# FZF_DEFAULT_OPTS='--layout=reverse --height=50%'
+fn _fzf_cmd {
+  return 'fzf' '--layout=reverse' '--height=50%'
+}
+
+# use fzf for file completions,
+# term   = the term under the cursor
+fn _fzf_file_widget term prune {
+  # split complete string into dir and file parts
+  let ( (dir query) = <={_split_file_dir_path $term ''}
+        fzf = <={_fzf_cmd} ) {
+    # if completion specified a file, add it as a fzf query
+    if {!~ $query ''} {
+      fzf = ($fzf '--query=' ^ $query)
+    }
+    # double `` overrides $ifs arg splitting, since fzf will return a literal
+    # filename, which may contain multiple space chars
+    return `` \n {find $dir $prune -print >[2] /dev/null | $fzf}
+  }
+}
+
+fn _fzf_history_widget argv {
+  let ( fzf = (<={_fzf_cmd} '--tac' '--sync' '--tiebreak=index'
+                            '--bind=ctrl-r:toggle-sort' '+m' ) ) {
+    if {$#argv :gt 0} {
+      fzf = ($fzf '--query=' ^ $^argv)
+    }
+    return `` \n {$fzf < $history}
+  }
+}
+
+# default completion function, this is the entry point
+# when a fn cmd_complete {} isn't defined
+fn default_complete ctype term argnum argv {
+  if {_have_fzf} {
+    # if requested fzf
+    if {~ $ctype 'fzf'} {
+      return <={_fzf_file_widget $term ''}
+    # else if completion $term is history, do fzf history
+    } {~ $ctype 'hist'} {
+      return <={_fzf_history_widget $argv}
+    # else if completion $term ends with **
+    } {~ $term *'**'} {
+      # if term is a <query>**, use <query> for fzf completion
+      let (strip_ss_term = <={~~ $term *'**'}) {
+        # do appropriate matching based on ctype
+        if {~ $ctype 'dirs'} {
+          return <={_fzf_file_widget $strip_ss_term '-type' 'd'}
+        } {~ $ctype 'exes'} {
+          return <={_fzf_file_widget $strip_ss_term '-type' 'f' '-executable'}
+        } {~ $ctype 'env'} {
+          return '' # builtin is better at scanning env vars
+        } {
+          # ctype could be: any, files, scan
+          return <={_fzf_file_widget $strip_ss_term ''}
+        }
+      }
+    }
+  }
+  # use builtin completion
+  return ''
+}
+
+# completion for git command
+fn git_complete ctype term argnum argv {
+  if {~ $argnum 2} {
+    # git <cmd>, there are more than this...
+    return (clone init add mv reset rm bisect grep log show status branch
+            checkout commit diff merge rebase tag fetch pull push submodule)
+  }
+  # probably other things that can be completed
+  return <={default_complete $ctype $term}
+}
+
+# complete pid by matching ps ef
+fn kill_complete ctype term argnum argv {
+  if {_have_fzf} {
+    let ( fzf = (<={_fzf_cmd} '--preview' 'echo {}' '--preview-window'
+                              'down:3:wrap') ) {
+      if {!~ $term ''} {
+        fzf = ($fzf '--query=' ^ $term)
+      }
+      return `{ps -ef | sed 1d | $fzf | awk '{print $2}' | tr '\n' ' '}
+    }
+  }
+  return ''
+}
+
+# either complete file or pid based on which arg is completed
+fn gdb_complete ctype term argnum argv {
+  if {_have_fzf} {
+    # if completing the path to the binary
+    if {~ $argnum 2} {
+      return <={_fzf_file_widget $term '-type' 'f' '-executable'}
+    } {~ $argnum 3} {
+      # find pid to attach;  if no $term, use binary name in argv[2] as query
+      if {~ $term ''} {
+        term = `{basename $argv(2)}
+      }
+      return <={kill_complete $ctype $term}
+    }
+  }
+  return ''
+}
+
+fn _ssh_cfg_hosts {
+  return `{
+    cat ~/.ssh/config /etc/ssh/ssh_config >[2] /dev/null | grep -i '^host ' |
+           grep -v '[*?]' | awk '{if (length($2) > 0) {print $2}}'
+  }
+}
+fn _ssh_known_hosts {
+  return `{
+    grep -oE '^[[a-z0-9.,:-]+' ~/.ssh/known_hosts | tr ',' '\n' | tr -d '['
+  }
+}
+fn _etc_hosts {
+  return `{
+    grep -v '^\s*\(#\|$\)' /etc/hosts | grep -Fv '0.0.0.0'
+  }
+}
+
+fn ssh_complete ctype term argnum argv {
+  if {$argnum :ge 2} {
+    let ( hosts = (<={_ssh_cfg_hosts} <={_ssh_known_hosts} <={_etc_hosts})
+          fzf   = <={_fzf_cmd} ) {
+      if {!~ $term ''} {
+        fzf = ($fzf '--query=' ^ $term)
+      }
+#      for fzf complete, use this:
+#      return `{echo $hosts | tr ' ' '\n' | sort -u | $fzf}
+      return $hosts # internal complete does deduplication and sorting
+    }
+  }
+  return ''
+}
+
 # load the history and log new commands of interactive prompt to this file
 history = ~/.desh_history

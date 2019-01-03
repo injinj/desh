@@ -447,7 +447,8 @@ tty_completion( Input *in )
   strcpy( &func[ i ], "_complete" );
   strcpy( complete, "compreply = <={" );
   off = strlen( complete );
-  if ( ctype != COMPLETE_FZF && varlookup( func, NULL ) != NULL ) {
+  if ( ctype != COMPLETE_FZF && ctype != COMPLETE_HIST &&
+       varlookup( func, NULL ) != NULL ) {
     strcpy( &complete[ off ], &func[ 3 ] );
     off += strlen( &complete[ off ] );
   }
@@ -464,6 +465,7 @@ tty_completion( Input *in )
     case COMPLETE_FILES: s = "files"; break;
     case COMPLETE_DIRS:  s = "dirs";  break;
     case COMPLETE_EXES:  s = "exes";  break;
+    case COMPLETE_HIST:  s = "hist";  break;
     case COMPLETE_SCAN:  s = "scan";  break;
     case COMPLETE_ENV:   s = "env";   break;
     case COMPLETE_FZF:   s = "fzf";   break;
