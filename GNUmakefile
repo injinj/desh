@@ -8,6 +8,7 @@ short_dist_lc := $(patsubst CentOS,rh,$(patsubst RedHatEnterprise,rh,\
                      $(patsubst Fedora,fc,$(patsubst Ubuntu,ub,\
                        $(patsubst Debian,deb,$(patsubst SUSE,ss,$(lsb_dist))))))))
 short_dist    := $(shell echo $(short_dist_lc) | tr a-z A-Z)
+pwd           := $(shell pwd)
 rpm_os        := $(short_dist_lc)$(lsb_dist_ver).$(uname_m)
 
 # this is where the targets are compiled
@@ -32,7 +33,7 @@ cpplink     := $(CC)
 gcc_wflags  := -Wall -Werror
 fpicflags   := -fPIC
 soflag      := -shared
-rpath1      := -Wl,-rpath,$(libd)
+rpath1      := -Wl,-rpath,$(pwd)/$(libd)
 
 ifdef DEBUG
 default_cflags := -ggdb
@@ -68,7 +69,7 @@ ifeq (yes,$(have_lc_submodule))
 lc_lib      := linecook/$(libd)/liblinecook.a
 lnk_lib     += $(lc_lib)
 dlnk_lib    += -Llinecook/$(libd) -llinecook
-rpath2       = ,-rpath,linecook/$(libd)
+rpath2       = ,-rpath,$(pwd)/linecook/$(libd)
 else
 lnk_lib     += -llinecook
 dlnk_lib    += -llinecook
@@ -78,7 +79,7 @@ ifeq (yes,$(have_dec_submodule))
 dec_lib     := libdecnumber/$(libd)/libdecnumber.a
 lnk_lib     += $(dec_lib)
 dlnk_lib    += -Llibdecnumber/$(libd) -ldecnumber
-rpath3       = ,-rpath,libdecnumber/$(libd)
+rpath3       = ,-rpath,$(pwd)/libdecnumber/$(libd)
 else
 lnk_lib     += -ldecnumber
 dlnk_lib    += -ldecnumber
