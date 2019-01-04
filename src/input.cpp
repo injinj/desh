@@ -418,10 +418,13 @@ copy_term( char *s,  size_t off,  size_t max,  char *t,  size_t len )
 static int
 tty_completion( Input *in )
 {
-  static char default_complete[] = "fn-default_complete";
+  static char default_complete[] = "fn-default_complete",
+              history_complete[] = "fn-_history_complete",
+              man_complete[]     = "fn-_man_complete",
+              help_complete[]    = "fn-_help_complete";
   /*#define FZFCMD "compreply=`{find . -print | fzf '--layout=reverse' '--height=50%'}"*/
   CompleteType ctype = lc_get_complete_type( lc );
-  const char * s;
+  const char * s, * fn;
   char   cmd[ 1024 ],
          term[ 128 ],
          func[ 128 ],
@@ -439,26 +442,51 @@ tty_completion( Input *in )
   if ( n < 0 || m < 0 || arg_count == 0 || arg_len[ 0 ] == 0 ||
        arg_len[ 0 ] > (int) ( sizeof( func ) - 16 ) )
     return -1;
-  /* construct: compreply=`{xyz_complete}\n */
-  memcpy( func, "fn-", 3 );
-  i = 3;
-  memcpy( &func[ 3 ], &cmd[ arg_off[ 0 ] ], arg_len[ 0 ] );
-  i += arg_len[ 0 ];
-  strcpy( &func[ i ], "_complete" );
+  fn = NULL;
+  switch ( ctype ) {
+    default:
+      /* look for function xyz_complete */
+      memcpy( func, "fn-", 3 );
+      i = 3;
+      memcpy( &func[ 3 ], &cmd[ arg_off[ 0 ] ], arg_len[ 0 ] );
+      i += arg_len[ 0 ];
+      strcpy( &func[ i ], "_complete" );
+      if ( varlookup( func, NULL ) != NULL ) {
+        fn = &func[ 3 ];
+        break;
+      }
+      /* FALLTHRU */
+    case COMPLETE_FZF: /* look for function default_complete */
+      if ( varlookup( default_complete, NULL ) != NULL )
+        fn = &default_complete[ 3 ];
+      break;
+    case COMPLETE_HIST: /* look for function history_complete */
+      if ( varlookup( history_complete, NULL ) != NULL )
+        fn = &history_complete[ 3 ];
+      break;
+    case COMPLETE_HELP: /* look for function help_complete */
+      if ( varlookup( help_complete, NULL ) != NULL )
+        fn = &help_complete[ 3 ];
+      break;
+    case COMPLETE_MAN: /* look for function man_complete */
+      if ( varlookup( man_complete, NULL ) != NULL )
+        fn = &man_complete[ 3 ];
+      break;
+  }
+  if ( fn == NULL )
+    return 0; /* no complete function found, use internal complete */
   strcpy( complete, "compreply = <={" );
   off = strlen( complete );
-  if ( ctype != COMPLETE_FZF && ctype != COMPLETE_HIST &&
-       varlookup( func, NULL ) != NULL ) {
-    strcpy( &complete[ off ], &func[ 3 ] );
-    off += strlen( &complete[ off ] );
-  }
-  else if ( varlookup( default_complete, NULL ) != NULL ) {
-    strcpy( &complete[ off ], &default_complete[ 3 ] );
-    off += strlen( &complete[ off ] );
-  }
-  else {
-    return 0;
-  }
+  strcpy( &complete[ off ], fn );
+  off += strlen( &complete[ off ] );
+
+  /* complete function args are:
+   *   xyz_complete <ctype> <argnum> <term> <argv...>
+   *
+   * ctype is below, argnum is the arg that is completed
+   * term is the text of the argnum that is completed
+   * argv is an array of strings split by spaces
+   */
   switch ( ctype ) {
     default:
     case COMPLETE_ANY:   s = "any";   break;
@@ -469,9 +497,12 @@ tty_completion( Input *in )
     case COMPLETE_SCAN:  s = "scan";  break;
     case COMPLETE_ENV:   s = "env";   break;
     case COMPLETE_FZF:   s = "fzf";   break;
+    case COMPLETE_HELP:  s = "help";  break;
+    case COMPLETE_MAN:   s = "man";   break;
   }
   complete[ off++ ] = ' ';
-  while ( *s != '\0' ) complete[ off++ ] = *s++;
+  while ( *s != '\0' )
+    complete[ off++ ] = *s++;
   complete[ off++ ] = ' ';
   off = copy_term( complete, off, sizeof( complete ) - 10, term, n );
   complete[ off++ ] = ' ';

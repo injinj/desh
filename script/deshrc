@@ -560,12 +560,12 @@ fn _fzf_file_widget term prune {
 }
 
 fn _fzf_history_widget argv {
-  let ( fzf = (<={_fzf_cmd} '--tac' '--sync' '--tiebreak=index'
+  let ( fzf = (<={_fzf_cmd} '--sync' '--tiebreak=index'
                             '--bind=ctrl-r:toggle-sort' '+m' ) ) {
     if {$#argv :gt 0} {
       fzf = ($fzf '--query=' ^ $^argv)
     }
-    return `` \n {$fzf < $history}
+    return `` \n {lc_hist_cat -r | $fzf}
   }
 }
 
@@ -576,9 +576,6 @@ fn default_complete ctype term argnum argv {
     # if requested fzf
     if {~ $ctype 'fzf'} {
       return <={_fzf_file_widget $term ''}
-    # else if completion $term is history, do fzf history
-    } {~ $ctype 'hist'} {
-      return <={_fzf_history_widget $argv}
     # else if completion $term ends with **
     } {~ $term *'**'} {
       # if term is a <query>**, use <query> for fzf completion
@@ -599,6 +596,34 @@ fn default_complete ctype term argnum argv {
   }
   # use builtin completion
   return ''
+}
+
+# history completion function
+fn _history_complete ctype term argnum argv {
+  if {_have_fzf} {
+    return <={_fzf_history_widget $argv}
+  }
+  return ''
+}
+
+# help completion function
+fn _help_complete ctype term argnum argv {
+  if {!~ $#argv 0} {
+    return `` \n {
+      $argv(1) --help >[2=1]
+    }
+  }
+  return 'Help completion needs a command'
+}
+
+# man completion function
+fn _man_complete ctype term argnum argv {
+  if {!~ $#argv 0} {
+    return `` \n {
+      man $argv(1) >[2=1]
+    }
+  }
+  return 'Man completion needs a command'
 }
 
 # completion for git command
