@@ -989,9 +989,11 @@ fn %interactive-loop {
 	let (result = <=true; %exit2 = true) {
 		catch @ e type msg {
 			if {~ $e eof} {
+                                evalstatus = 0
 	                        echo >[1=2] EOF: Exiting ...
                         	return $result
                         } {~ $e exit} {
+                                evalstatus = 0
                                 if {$%exit2} {
 		                        echo >[1=2] Exiting ...
                                         throw $e $type $msg
@@ -999,6 +1001,7 @@ fn %interactive-loop {
                                 echo >[1=2] You have background jobs.
                                 %exit2 = true
 			} {~ $e error} {
+                                evalstatus = -1
 				echo >[1=2] $msg
 				$fn-%dispatch false
 			} {~ $e signal} {
@@ -1007,9 +1010,11 @@ fn %interactive-loop {
                                 } {~ $type sigint sigterm sigquit} {
                                 	# noop
                                 } {
+                                        evalstatus = -2
 					echo >[1=2] caught unexpected signal: $type
 				}
 			} {
+                                evalstatus = -3
 				echo >[1=2] uncaught exception: $e $type $msg
 			}
 			throw retry # restart forever loop
