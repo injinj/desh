@@ -50,6 +50,10 @@ shell to look like this: [desh example](doc/desh_example.png).  For the key
 bindings, hit F1 or ctrl-alt-k, F4 or ctrl-alt-l to clear, pgup/pgdown or
 alt-k,alt-j to page the view: [desh key](doc/desh_key.png).
 
+I made a asciicast for a quick tour of the features here:
+
+[![asciicast](https://asciinema.org/a/219909.svg)](https://asciinema.org/a/219909)
+
 ### Making desh
 
 This project uses a makefile so make will build everything.  It needs gcc-c++,
