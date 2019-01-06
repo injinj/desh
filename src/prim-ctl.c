@@ -7,7 +7,7 @@ PRIM(seq) {
 	Ref(List *, result, ltrue);
 	Ref(List *, lp, list);
 	for (; lp != NULL; lp = lp->next)
-		result = eval1(lp->term, evalflags &~ (lp->next == NULL ? 0 : eval_inchild));
+		result = eval1(lp->term, evalflags &~ (lp->next == NULL ? 0 : EVAL_INCHILD));
 	RefEnd(lp);
 	RefReturn(result);
 }
@@ -15,7 +15,7 @@ PRIM(seq) {
 PRIM(if) {
 	Ref(List *, lp, list);
 	for (; lp != NULL; lp = lp->next) {
-		List *cond = eval1(lp->term, evalflags & (lp->next == NULL ? eval_inchild : 0));
+		List *cond = eval1(lp->term, evalflags & (lp->next == NULL ? EVAL_INCHILD : 0));
 		lp = lp->next;
 		if (lp == NULL) {
 			RefPop(lp);
@@ -34,7 +34,7 @@ PRIM(if) {
 PRIM(forever) {
 	Ref(List *, body, list);
 	for (;;)
-		list = eval(body, NULL, evalflags & eval_exitonfalse);
+		list = eval(body, NULL, evalflags & EVAL_EXITONFALSE);
 	RefEnd(body);
 	return list;
 }

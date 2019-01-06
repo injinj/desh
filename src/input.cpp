@@ -50,7 +50,7 @@ static char * history_filename;
 static const char *
 locate( Input *in, const char *s )
 {
-  return ( in->runflags & run_interactive )
+  return ( in->runflags & RUN_INTERACTIVE )
            ? s
            : str( "%s:%d: %s", in->name, in->lineno, s );
 }
@@ -77,6 +77,24 @@ extern "C" void
 sethistory( char *file )
 {
   history_filename = file;
+}
+
+extern "C" void
+setevalstatus( char *status )
+{
+  if ( lc != NULL && is_completion == FALSE ) {
+    int res  = 0;
+    bool neg = false;
+    if ( status != NULL ) {
+      if ( status[ 0 ] == '-' ) {
+        neg = true;
+        status++;
+      }
+      if ( status[ 0 ] >= '0' && status[ 0 ] <= '9' )
+        res = atoi( status ) * ( neg ? -1 : 1 );
+    }
+    lc_set_eval_status( lc, res );
+  }
 }
 
 /*
@@ -110,7 +128,7 @@ unget( Input *in, int c )
     in->unget[ in->ungot++ ] = c;
   }
   else if ( in->bufbegin < in->buf && in->buf[ -1 ] == c &&
-            ( input->runflags & run_echoinput ) == 0 )
+            ( input->runflags & RUN_ECHOINPUT ) == 0 )
     --in->buf;
   else {
     assert( in->rfill == NULL );
@@ -141,8 +159,8 @@ get( Input *in )
       c = ( *in->fill )( in );
     if ( c != 0 )
       return c;
-    if ( ( in->runflags & run_interrupt ) != 0 ) {
-      in->runflags &= ~run_interrupt;
+    if ( ( in->runflags & RUN_INTERRUPT ) != 0 ) {
+      in->runflags &= ~RUN_INTERRUPT;
       return 0;
     }
     warn( "null character ignored" );
@@ -421,7 +439,8 @@ tty_completion( Input *in )
   static char default_complete[] = "fn-default_complete",
               history_complete[] = "fn-_history_complete",
               man_complete[]     = "fn-_man_complete",
-              help_complete[]    = "fn-_help_complete";
+              help_complete[]    = "fn-_help_complete",
+              next_complete[]    = "fn-_next_complete";
   /*#define FZFCMD "compreply=`{find . -print | fzf '--layout=reverse' '--height=50%'}"*/
   CompleteType ctype = lc_get_complete_type( lc );
   const char * s, * fn;
@@ -472,6 +491,10 @@ tty_completion( Input *in )
       if ( varlookup( man_complete, NULL ) != NULL )
         fn = &man_complete[ 3 ];
       break;
+    case COMPLETE_NEXT: /* look for function next_complete */
+      if ( varlookup( next_complete, NULL ) != NULL )
+        fn = &next_complete[ 3 ];
+      break;
   }
   if ( fn == NULL )
     return 0; /* no complete function found, use internal complete */
@@ -499,6 +522,7 @@ tty_completion( Input *in )
     case COMPLETE_FZF:   s = "fzf";   break;
     case COMPLETE_HELP:  s = "help";  break;
     case COMPLETE_MAN:   s = "man";   break;
+    case COMPLETE_NEXT:  s = "next";  break;
   }
   complete[ off++ ] = ' ';
   while ( *s != '\0' )
@@ -637,7 +661,7 @@ tty_read( Input *in )
 
         case LINE_STATUS_SUSPEND:
         case LINE_STATUS_INTERRUPT:
-          in->runflags |= run_interrupt; /* cause yyabort w/ERROR token */
+          in->runflags |= RUN_INTERRUPT; /* cause yyabort w/ERROR token */
           r = 2;
           in->bufbegin[ 0 ] = 0;
           in->bufbegin[ 1 ] = '\n';
@@ -662,7 +686,7 @@ fdfill( Input *in )
   assert( in->fd >= 0 );
 
   do {
-    if ( ( in->runflags & run_interactive ) != 0 )
+    if ( ( in->runflags & RUN_INTERACTIVE ) != 0 )
       nread = tty_read( in );
     else
       nread = eread( in->fd, (char *) in->bufbegin, in->buflen );
@@ -672,7 +696,7 @@ fdfill( Input *in )
     close( in->fd );
     in->fd   = -1;
     in->fill = eoffill;
-    in->runflags &= ~run_interactive;
+    in->runflags &= ~RUN_INTERACTIVE;
     if ( nread == -1 )
       fail( "$&parse", "%s: %s", in->name == NULL ? SHNAME : in->name,
             esstrerror( errno ) );
@@ -724,7 +748,7 @@ parse( char **pr )
     fail( "$&parse", "%s", e );
   }
 #if LISPTREES
-  if ( input->runflags & run_lisptrees )
+  if ( input->runflags & RUN_LISPTREES )
     eprint( "%B\n", parsetree );
 #endif
   return parsetree;
@@ -752,25 +776,25 @@ runinput( Input *in, int runflags )
     "fn-%noeval-print",
   };
 
-  flags &= ~eval_inchild;
+  flags &= ~EVAL_INCHILD;
   in->runflags = flags;
-  in->get      = ( flags & run_echoinput ) ? getverbose : get;
+  in->get      = ( flags & RUN_ECHOINPUT ) ? getverbose : get;
   in->prev     = input;
   input        = in;
 
   ExceptionHandler
 
-    dispatch = varlookup( dispatcher[ ( ( flags & run_printcmds ) ? 1 : 0 ) +
-                                      ( ( flags & run_noexec ) ? 2 : 0 ) ],
+    dispatch = varlookup( dispatcher[ ( ( flags & RUN_PRINTCMDS ) ? 1 : 0 ) +
+                                      ( ( flags & RUN_NOEXEC ) ? 2 : 0 ) ],
                           NULL );
-    if ( flags & eval_exitonfalse ) {
+    if ( flags & EVAL_EXITONFALSE ) {
       static char exit_on_false[] = "%exit-on-false";
       dispatch = mklist( mkstr( exit_on_false ), dispatch );
     }
     static char fn_dispatch[] = "fn-%dispatch";
     varpush( &push, fn_dispatch, dispatch );
 
-    repl   = varlookup( ( flags & run_interactive ) ? "fn-%interactive-loop"
+    repl   = varlookup( ( flags & RUN_INTERACTIVE ) ? "fn-%interactive-loop"
                                                     : "fn-%batch-loop", NULL );
     result = ( repl == NULL ) ? prim( "batchloop", NULL, NULL, flags )
                               : eval( repl, NULL, flags );
@@ -932,7 +956,7 @@ isinteractive( void )
 {
   if ( input == NULL )
     return FALSE;
-  if ( ( input->runflags & run_interactive ) != 0 )
+  if ( ( input->runflags & RUN_INTERACTIVE ) != 0 )
     return TRUE;
   return FALSE;
 }

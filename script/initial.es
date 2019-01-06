@@ -737,6 +737,7 @@ set-history		= $&sethistory
 set-signals		= $&setsignals
 set-noexport		= $&setnoexport
 set-max-eval-depth	= $&setmaxevaldepth
+set-evalstatus		= $&setevalstatus
 
 #	If the primitive $&resetterminal is defined (meaning that readline
 #	or editline is being used), setting the variables $TERM or $TERMCAP
@@ -772,7 +773,7 @@ max-eval-depth	= 640
 #	is does.  fn-%dispatch is really only important to the current
 #	interpreter loop.
 
-noexport = noexport pid signals apid bqstatus fn-%dispatch path home
+noexport = noexport pid signals apid bqstatus fn-%dispatch path home evalstatus
 
 
 #
@@ -1021,6 +1022,7 @@ fn %interactive-loop {
 				let (code = <={%parse $prompt}) {
 					if {!~ $#code 0} {
 						result = <={$fn-%dispatch $code}
+                                                evalstatus = $result
                                                 $&donotwait
                                                 if {$&apids} {%exit2 = true} {%exit2 = false}
 					} {

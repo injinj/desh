@@ -167,9 +167,9 @@ extern unsigned long evaldepth, maxevaldepth;
 #define	MINmaxevaldepth		100
 #define	MAXmaxevaldepth		0xffffffffU
 
-#define	eval_inchild		1
-#define	eval_exitonfalse	2
-#define	eval_flags		(eval_inchild|eval_exitonfalse)
+#define	EVAL_INCHILD		1
+#define	EVAL_EXITONFALSE	2
+#define	EVAL_FLAGS		(EVAL_INCHILD|EVAL_EXITONFALSE)
 
 
 /* glom.c */

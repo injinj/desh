@@ -217,7 +217,7 @@ static List *forloop(Tree *defn0, Tree *body0,
 				RefPop(bp);
 				break;
 			}
-			result = walk(body, bp, evalflags & eval_exitonfalse);
+			result = walk(body, bp, evalflags & EVAL_EXITONFALSE);
 			RefEnd(bp);
 			SIGCHK();
 		}
@@ -440,7 +440,7 @@ restart:
 		char *error = checkexecutable(name);
 		if (error != NULL)
 			fail("$&whatis", "%s: %s", name, error);
-		list = forkexec(name, list, flags & eval_inchild);
+		list = forkexec(name, list, flags & EVAL_INCHILD);
 		RefPop(name);
 		goto done;
 	}
@@ -450,7 +450,7 @@ restart:
 	if (fn != NULL && fn->next == NULL
 	    && (cp = getclosure(fn->term)) == NULL) {
 		char *name = getstr(fn->term);
-		list = forkexec(name, list, flags & eval_inchild);
+		list = forkexec(name, list, flags & EVAL_INCHILD);
 		goto done;
 	}
 
@@ -459,7 +459,7 @@ restart:
 
 done:
 	--evaldepth;
-	if ((flags & eval_exitonfalse) && !istrue(list))
+	if ((flags & EVAL_EXITONFALSE) && !istrue(list))
 		exit(exitstatus(list));
 	RefEnd2(funcname, binding);
 	RefReturn(list);

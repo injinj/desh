@@ -23,7 +23,7 @@ static int getnumber(const char *s) {
 static listpid redir(listpid (*rop)(int *fd, List *list), List *list, int evalflags) {
 	int destfd, srcfd;
 	listpid r;
-	volatile int inparent = (evalflags & eval_inchild) == 0;
+	volatile int inparent = (evalflags & EVAL_INCHILD) == 0;
 	volatile int ticket = UNREGISTERED;
 
 	assert(list != NULL);
@@ -255,7 +255,7 @@ PRIM(pipe) {
 				mvfd(p[1], fd);
 				close(p[0]);
 			}
-			exit(exitstatus(eval1(list->term, evalflags | eval_inchild)));
+			exit(exitstatus(eval1(list->term, evalflags | EVAL_INCHILD)));
 		}
 		pids[n++] = pid;
 		close(inpipe);
@@ -275,7 +275,7 @@ PRIM(pipe) {
 		t = mkstr(mkstatus(status));
 		result = mklist(t, result);
 	} while (0 < n);
-	if (evalflags & eval_inchild)
+	if (evalflags & EVAL_INCHILD)
 		exit(exitstatus(result));
 	RefReturn(result);
 }
@@ -297,7 +297,7 @@ PRIM(readfrom) {
 	if ((pid = pipefork(p, NULL, 0, mklist(cmd, NULL))) == 0) {
 		close(p[0]);
 		mvfd(p[1], 1);
-		exit(exitstatus(eval1(input, evalflags &~ eval_inchild)));
+		exit(exitstatus(eval1(input, evalflags &~ EVAL_INCHILD)));
 	}
 
 	close(p[1]);
@@ -338,7 +338,7 @@ PRIM(writeto) {
 	if ((pid = pipefork(p, NULL, 0, mklist(cmd, NULL))) == 0) {
 		close(p[1]);
 		mvfd(p[0], 0);
-		exit(exitstatus(eval1(output, evalflags &~ eval_inchild)));
+		exit(exitstatus(eval1(output, evalflags &~ EVAL_INCHILD)));
 	}
 
 	close(p[0]);
@@ -396,7 +396,7 @@ PRIM(backquote) {
 	if ((pid = pipefork(p, NULL, 0, lp)) == 0) {
 		mvfd(p[1], 1);
 		close(p[0]);
-		exit(exitstatus(eval(lp, NULL, evalflags | eval_inchild)));
+		exit(exitstatus(eval(lp, NULL, evalflags | EVAL_INCHILD)));
 	}
 
 	close(p[1]);

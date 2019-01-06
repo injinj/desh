@@ -39,7 +39,7 @@ prim_background( List *list, Binding *binding, int evalflags )
   int pid = efork( TRUE, TRUE, 0, list );
   setpgid( pid, getpid() );
   if ( pid == 0 ) {
-    exit( exitstatus( eval( list, NULL, evalflags | eval_inchild ) ) );
+    exit( exitstatus( eval( list, NULL, evalflags | EVAL_INCHILD ) ) );
   }
   return mklist( mkstr( str( "%d", pid ) ), NULL );
 }
@@ -50,7 +50,7 @@ prim_fork( List *list, Binding *binding, int evalflags )
   int pid, status;
   pid = efork( TRUE, FALSE, 0, list );
   if ( pid == 0 )
-    exit( exitstatus( eval( list, NULL, evalflags | eval_inchild ) ) );
+    exit( exitstatus( eval( list, NULL, evalflags | EVAL_INCHILD ) ) );
   status = ewaitfor( pid );
   SIGCHK();
   printstatus( 0, status );
@@ -66,7 +66,7 @@ prim_run( List *list, Binding *binding, int evalflags )
   XRef<List *> lp( list );
   file = getstr( lp.ptr->term );
   lp.ptr = forkexec( file, lp.ptr->next,
-                     ( evalflags & eval_inchild ) != 0 ? TRUE : FALSE );
+                     ( evalflags & EVAL_INCHILD ) != 0 ? TRUE : FALSE );
   return lp.ptr;
 }
 

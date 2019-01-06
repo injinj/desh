@@ -67,24 +67,24 @@ prim_version( List *list, Binding *binding, int evalflags )
 static List *
 prim_exec( List *list, Binding *binding, int evalflags )
 {
-  return eval( list, NULL, evalflags | eval_inchild );
+  return eval( list, NULL, evalflags | EVAL_INCHILD );
 }
 
 static List *
 prim_dot( List *list, Binding *binding, int evalflags )
 {
   int               c, fd;
-  volatile int      runflags = ( evalflags & eval_inchild );
+  volatile int      runflags = ( evalflags & EVAL_INCHILD );
   const char *const usage    = ". [-einvx] file [arg ...]";
 
   esoptbegin( list, "$&dot", usage );
   while ( ( c = esopt( "einvx" ) ) != EOF )
     switch ( c ) {
-      case 'e': runflags |= eval_exitonfalse; break;
-      case 'i': runflags |= run_interactive; break;
-      case 'n': runflags |= run_noexec; break;
-      case 'v': runflags |= run_echoinput; break;
-      case 'x': runflags |= run_printcmds; break;
+      case 'e': runflags |= EVAL_EXITONFALSE; break;
+      case 'i': runflags |= RUN_INTERACTIVE; break;
+      case 'n': runflags |= RUN_NOEXEC; break;
+      case 'v': runflags |= RUN_ECHOINPUT; break;
+      case 'x': runflags |= RUN_PRINTCMDS; break;
     }
 
   XRef<List *> result( NULL );
@@ -194,6 +194,16 @@ prim_sethistory( List *list, Binding *binding, int evalflags )
 }
 
 static List *
+prim_setevalstatus( List *list, Binding *binding, int evalflags )
+{
+  if ( list == NULL )
+    return NULL;
+  XRef<List *> lp( list );
+  setevalstatus( getstr( lp.ptr->term ) );
+  return lp.ptr;
+}
+
+static List *
 prim_parse( List *list, Binding *binding, int evalflags )
 {
   Tree *tree;
@@ -214,7 +224,7 @@ prim_parse( List *list, Binding *binding, int evalflags )
 static List *
 prim_exitonfalse( List *list, Binding *binding, int evalflags )
 {
-  return eval( list, NULL, evalflags | eval_exitonfalse );
+  return eval( list, NULL, evalflags | EVAL_EXITONFALSE );
 }
 
 static List *
@@ -353,6 +363,7 @@ initprims_etc( Dict *primdict )
     { "flatten",         prim_flatten         },
     { "whatis",          prim_whatis          },
     { "sethistory",      prim_sethistory      },
+    { "setevalstatus",   prim_setevalstatus   },
     { "split",           prim_split           },
     { "fsplit",          prim_fsplit          },
     { "var",             prim_var             },

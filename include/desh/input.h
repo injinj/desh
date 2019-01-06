@@ -28,12 +28,12 @@ struct Input {
 #define UNGETC( c ) unget( input, c )
 
 /* eval_* flags are also understood as runflags */
-#define run_interactive          4      /* -i or $0[0] = '-' */
-#define run_noexec               8      /* -n */
-#define run_echoinput           16      /* -v */
-#define run_printcmds           32      /* -x */
-#define run_lisptrees           64      /* -L and defined(LISPTREES) */
-#define run_interrupt          128      /* ctrl-c on input */
+#define RUN_INTERACTIVE          4      /* -i or $0[0] = '-' */
+#define RUN_NOEXEC               8      /* -n */
+#define RUN_ECHOINPUT           16      /* -v */
+#define RUN_PRINTCMDS           32      /* -x */
+#define RUN_LISPTREES           64      /* -L and defined(LISPTREES) */
+#define RUN_INTERRUPT          128      /* ctrl-c on input */
 
 /* input.c */
 extern Boolean heredoc_input;
@@ -44,6 +44,7 @@ extern Boolean is_prompt2; /* display secondary prompt */
 
 void yyerror( char *s );
 void sethistory( char *file );
+void setevalstatus( char *status );
 int keybind( char **args, int argc );
 void unget( Input *in, int c );
 void initgetenv( void );

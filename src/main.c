@@ -148,13 +148,13 @@ int main(int argc, char **argv) {
 	while ((c = getopt(argc, argv, "eilxvnpodsc:?GIL")) != EOF)
 		switch (c) {
 		case 'c':	cmd = optarg;			break;
-		case 'e':	runflags |= eval_exitonfalse;	break;
-		case 'i':	runflags |= run_interactive;	break;
-		case 'n':	runflags |= run_noexec;		break;
-		case 'v':	runflags |= run_echoinput;	break;
-		case 'x':	runflags |= run_printcmds;	break;
+		case 'e':	runflags |= EVAL_EXITONFALSE;	break;
+		case 'i':	runflags |= RUN_INTERACTIVE;	break;
+		case 'n':	runflags |= RUN_NOEXEC;		break;
+		case 'v':	runflags |= RUN_ECHOINPUT;	break;
+		case 'x':	runflags |= RUN_PRINTCMDS;	break;
 #if LISPTREES
-		case 'L':	runflags |= run_lisptrees;	break;
+		case 'L':	runflags |= RUN_LISPTREES;	break;
 #endif
 		case 'l':	loginshell = TRUE;		break;
 		case 'p':	protected = TRUE;		break;
@@ -186,10 +186,10 @@ getopt_done:
 	if (
 		cmd == NULL
 	     && (optind == argc || cmd_stdin)
-	     && (runflags & run_interactive) == 0
+	     && (runflags & RUN_INTERACTIVE) == 0
 	     && isatty(0)
 	)
-		runflags |= run_interactive;
+		runflags |= RUN_INTERACTIVE;
 
 	ac = argc;
 	av = argv;
@@ -207,7 +207,7 @@ getopt_done:
 	
 		initpath();
 		initpid();
-		initsignals(runflags & run_interactive, allowquit);
+		initsignals(runflags & RUN_INTERACTIVE, allowquit);
 		hidevariables();
 		initenv(environ, protected);
 	
@@ -217,7 +217,7 @@ getopt_done:
 		if (loginshell)
 			runprofile();
 
-		if ((runflags & run_interactive) > 0)
+		if ((runflags & RUN_INTERACTIVE) > 0)
 			runrc();
 
 		if (cmd == NULL && !cmd_stdin && optind < ac) {

@@ -291,6 +291,8 @@ fn set_prompt_256 {
        USER_COLOR    = <={fgcolor 'LightSlateBlue'}
        HOST_COLOR    = <={fgcolor 'BrightYellow'}
        PWD_COLOR     = <={fgcolor 'Green'}
+       NZ_COLOR      = <={fgcolor 'Red'}
+       OK_COLOR      = <={fgcolor 'Green'}
        PROMPT2_COLOR = <={fgcolor 'Orchid'}
        HIST_COLOR    = <={fgcolor 'BrightCyan'}
        TTY_COLOR     = <={fgcolor 'MediumPurple'}
@@ -313,7 +315,9 @@ fn set_prompt_256 {
              $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
              $prompt_git_status      ^ ' ' ^
              $TTY_COLOR     ^ '\l'   ^ ' ' ^
-             $os_container_string    ^ $prompt_extra_status ^ $NO_COLOR ^ '\n' ^
+             $os_container_string    ^ $prompt_extra_status ^ $NO_COLOR ^ ' ' ^
+             $NZ_COLOR      ^ '\N'   ^ $NO_COLOR ^
+             $OK_COLOR      ^ '\O'   ^ $NO_COLOR ^ '\n' ^
              $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
              $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
              $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
@@ -335,6 +339,8 @@ fn set_prompt_8 {
        USER_COLOR    = <={fgcolor 'Cyan'}
        HOST_COLOR    = <={fgcolor 'Magenta'}
        PWD_COLOR     = <={fgcolor 'Green'}
+       NZ_COLOR      = <={fgcolor 'Red'}
+       OK_COLOR      = <={fgcolor 'Green'}
        PROMPT2_COLOR = <={fgcolor 'Cyan'}
        HIST_COLOR    = <={fgcolor 'Cyan'}
        TTY_COLOR     = <={fgcolor 'Cyan'}
@@ -355,7 +361,9 @@ fn set_prompt_8 {
              $PWD_COLOR     ^ '\w'   ^ $NO_COLOR ^ '\R' ^
              $prompt_git_status      ^ ' ' ^
              $TTY_COLOR     ^ '\l'   ^ ' ' ^
-             $os_container_string    ^ $prompt_extra_status ^ $NO_COLOR ^ '\n' ^
+             $os_container_string    ^ $prompt_extra_status ^ $NO_COLOR ^ ' ' ^
+             $NZ_COLOR      ^ '\N'   ^ $NO_COLOR ^
+             $OK_COLOR      ^ '\O'   ^ $NO_COLOR ^ '\n' ^
              $HIST_COLOR    ^ '[\!]' ^ $NO_COLOR ^ '; '
              $PROMPT2_COLOR ^ '> '   ^ $NO_COLOR
              $INS_COLOR     ^ '<-i'  ^ $NO_COLOR
@@ -372,7 +380,7 @@ fn set_prompt_8 {
 
 fn set_prompt_nocolor {
   prompt = ( '\u@\h:\w\R' ^ $prompt_git_status ^ ' \l ' ^
-             $os_container_string ^ $prompt_extra_status ^ '\n[\!]; '
+             $os_container_string ^ $prompt_extra_status ^ ' \N\O\n[\!]; '
              '> '
              '<-i'
              '|=c'
@@ -620,7 +628,17 @@ fn _help_complete ctype term argnum argv {
 fn _man_complete ctype term argnum argv {
   if {!~ $#argv 0} {
     return `` \n {
-      man $argv(1) >[2=1]
+      man `{basename $argv(1)} >[2=1]
+    }
+  }
+  return 'Man completion needs a command'
+}
+
+# man completion function
+fn _next_complete ctype term argnum argv {
+  if {!~ $#argv 0} {
+    return `` \n {
+      eval $argv
     }
   }
   return 'Man completion needs a command'
