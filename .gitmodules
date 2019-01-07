@@ -1,6 +1,6 @@
 [submodule "linecook"]
 	path = linecook
-	url = git@github.com:injinj/linecook.git
+	url = https://github.com/injinj/linecook.git
 [submodule "libdecnumber"]
 	path = libdecnumber
-	url = git@github.com:raitechnology/libdecnumber.git
+	url = https://github.com/raitechnology/libdecnumber.git
