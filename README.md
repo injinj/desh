@@ -116,8 +116,35 @@ Uninstalling dpkgs:
 $ sudo dpkg -r linecook libdecnumber desh
 ```
 
-I've built CentOS 7, Fedora 27, Fedora 28, Fedora 29, Debian 9 x86_64, so I
-know at least these will work,  CentOS 6 does not work without adding utf-32
+For Ubuntu 18.04 under Windows 10, this build works for me:
+
+```console
+$ sudo apt-get update
+$ sudo apt-get install make g++ gcc devscripts libpcre2-dev chrpath
+$ sudo apt-get install debhelper bison
+$ sudo update-alternatives --set fakeroot /usr/bin/fakeroot-tcp
+$ git clone https://github.com/injinj/desh
+$ cd desh
+$ git submodule update --init --recursive
+$ cd libdecnumber
+$ make dist_dpkg
+$ sudo dpkg -i dpkgbuild/libdecnumber_3.61.0-5_amd64.deb
+$ cd ../linecook
+$ make dist_dpkg
+$ sudo dpkg -i dpkgbuild/linecook_1.3.0-29_amd64.deb
+$ cd ..
+$ make dist_dpkg
+$ sudo dpkg -i dpkgbuild/desh_1.3.0-25_amd64.deb
+```
+
+The version numbers used in all of the above examples will (and have) changed.
+
+The weird part of the Windows Ubuntu build is the fakeroot-tcp requirement.
+This is because Windows does not yet implement SYSV IPC message queues, which
+the standard fakeroot uses.
+
+I've also built CentOS 7, Fedora 27, Fedora 28, Fedora 29, Debian 9 x86_64, so
+I know at least these will work,  CentOS 6 does not work without adding utf-32
 glibc support for linecook.  That shouldn't be terribly difficult, but I don't
 have a reason for that port.
 
