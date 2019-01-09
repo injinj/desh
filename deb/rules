@@ -9,3 +9,7 @@ include /usr/share/dpkg/default.mk
 
 override_dh_auto_build:
 	make dist_bins
+
+override_dh_install:
+	dh_install
+	dh_install debian/desh/usr/share/doc/desh/deshrc /etc
