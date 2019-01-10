@@ -73,9 +73,23 @@ That should be it.  The target will be in a build directory called FC28_x86_64
 or RH7_x86_64 or UB9_x86_64, based on the Linux distro installed.  There are
 run paths inserted into the binary so that it finds the shared libraries when
 run from the make directory for debugging.  These paths are removed for the rpm
-install using the chrpath command.  The make dist_rpm will create an rpm based
-install using the rpm/desh.spec file, but it needs the submodule rpms installed
-before the desh rpm itself is built and installed.
+install using the chrpath command.
+
+If you run this way, source the script/deshrc file.  It has prompt styling and
+completion rules that are useful:  git branch decoding, fzf integration,
+terminal pwd title, and the history file.  This file is normally installed at
+/etc/deshrc.
+
+```console
+$ FC27_x86_64/bin/desh
+; . script/deshrc
+chris@deedee:~
+[4983];
+```
+
+The make dist_rpm or make dist_dpkg will create an rpm/deb based install using
+the rpm/desh.spec or deb/rules file, but it needs the submodule rpm/deb
+installed before the desh rpm/deb itself is built and installed.
 
 ```console
 $ cd linecook
