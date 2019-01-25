@@ -176,26 +176,35 @@ prompt_extra_status = ''
 prompt_git_status   = 'initial'
 # this can be set later to display a container id on the right of the prompt
 os_container_string = ''
+osver = ''
+osdist = ''
 
 if {access -x /usr/bin/lsb_release} {
   osver=`{/usr/bin/lsb_release -rs | sed 's/[.].*//'}
   osdist=`{/usr/bin/lsb_release -i | sed 's/.*:\t//'}
+} {access -x /usr/bin/uname} {
+  osdist=`{/usr/bin/uname}
+  osver=`{/usr/bin/uname -r | sed 's/[-].*//'}
+}
 
-  if {~ $osdist 'Fedora'} {
-    os_container_string = 'FC' ^ $osver
-  } {~ $osdist 'CentOS' || ~ $osdist 'RedHat' || ~ $osdist 'RedHatEnterprise'} {
-    os_container_string = 'RH' ^ $osver
-  } {~ $osdist 'Debian'} {
-    os_container_string = 'DEB' ^ $osver
-  } {~ $osdist 'Ubuntu'} {
-    os_container_string = 'UB' ^ $osver
-  } {~ $osdist 'SUSE' || ~ $osdist 'OpenSUSE'} {
-    os_container_string = 'SS' ^ $osver
-  } {~ $osdist 'Slackware'} {
-    os_container_string = 'SL' ^ $osver
-  } {~ $osdist 'Arch'} {
-    os_container_string = 'AR' ^ $osver
-  }
+if {~ $osdist 'Fedora'} {
+  os_container_string = 'FC' ^ $osver
+} {~ $osdist 'CentOS' || ~ $osdist 'RedHat' || ~ $osdist 'RedHatEnterprise'} {
+  os_container_string = 'RH' ^ $osver
+} {~ $osdist 'Debian'} {
+  os_container_string = 'DEB' ^ $osver
+} {~ $osdist 'Ubuntu'} {
+  os_container_string = 'UB' ^ $osver
+} {~ $osdist 'SUSE' || ~ $osdist 'OpenSUSE'} {
+  os_container_string = 'SS' ^ $osver
+} {~ $osdist 'Slackware'} {
+  os_container_string = 'SL' ^ $osver
+} {~ $osdist 'Arch'} {
+  os_container_string = 'AR' ^ $osver
+} {~ $osdist 'SunOS'} {
+  os_container_string = 'SUN' ^ $osver
+} {~ $osdist 'Linux'} {
+  os_container_string = 'LI' ^ $osver
 }
 
 fn git_branch_decoder {
@@ -466,7 +475,7 @@ fn shorten_pwd_home {
 
 # init these if not set already
 if {~ $#USER 0} {USER = `{whoami}}
-if {~ $#HOSTNAME 0} {HOSTNAME = `{hostname -s}}
+if {~ $#HOSTNAME 0} {HOSTNAME = `{hostname | sed 's/[.].*//'}}
 PWD = `{pwd}
 
 #

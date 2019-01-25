@@ -6,6 +6,7 @@
 #include <desh/es.h>
 #include <desh/input.h>
 #include <desh/syntax.h>
+#pragma GCC diagnostic ignored "-Wunused-label"
 %}
 
 %token	WORD QWORD

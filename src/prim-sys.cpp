@@ -10,6 +10,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <termios.h>
 
 static List *
 prim_newpgrp( List *list, Binding *binding, int evalflags )
@@ -178,16 +179,17 @@ static const Limit limits[] = {
   { "datasize", RLIMIT_DATA, sizesuf },
   { "stacksize", RLIMIT_STACK, sizesuf },
   { "coredumpsize", RLIMIT_CORE, sizesuf },
-
 #ifdef RLIMIT_RSS /* SysVr4 does not have this */
   { "memoryuse", RLIMIT_RSS, sizesuf },
 #endif
-#ifdef RLIMIT_VMEM /* instead, they have this! */
+
+#if defined( RLIMIT_VMEM ) /* instead, they have this! */
   { "memorysize", RLIMIT_VMEM, sizesuf },
+#elif defined( RLIMIT_AS ) /* from xs (same as VMEM on solaris) */
+  { "virtualsize", RLIMIT_AS, sizesuf },
 #endif
 
-#ifdef RLIMIT_MEMLOCK /* 4.4bsd adds an unimplemented limit on non-pageable    \
-                         memory */
+#ifdef RLIMIT_MEMLOCK /* 4.4bsd adds an unimpl. limit on non-pageable mem */
   { "lockedmemory", RLIMIT_CORE, sizesuf },
 #endif
 
@@ -200,12 +202,19 @@ static const Limit limits[] = {
 #ifdef RLIMIT_NPROC /* 4.4bsd adds a limit on child processes */
   { "processes", RLIMIT_NPROC, NULL },
 #endif
-#if 1 /* from xs */
-  { "virtualsize", RLIMIT_AS, sizesuf },
+#ifdef RLIMIT_MSGQUEUE
   { "msgqueuesize", RLIMIT_MSGQUEUE, sizesuf },
+#endif
+#ifdef RLIMIT_NICE
   { "nicelimit", RLIMIT_NICE, NULL },
+#endif
+#ifdef RLIMIT_RTPRIO
   { "rtpriolimit", RLIMIT_RTPRIO, NULL },
+#endif
+#ifdef RLIMIT_RTTIME
   { "rtrunlimit", RLIMIT_RTTIME, NULL },
+#endif
+#ifdef RLIMIT_SIGPENDING
   { "sigqlimit", RLIMIT_SIGPENDING, NULL },
 #endif
   { "", 0, NULL }

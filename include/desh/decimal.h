@@ -10,7 +10,6 @@ extern "C" {
 typedef struct { uint64_t n[ 2 ]; } Dec128Store;
 
 void es_dec128_itod( Dec128Store *fp,  int i );
-void es_dec128_ftod( Dec128Store *fp,  double f );
 void es_dec128_from_string( Dec128Store *fp,  const char *str );
 void es_dec128_zero( Dec128Store *fp );
 size_t es_dec128_to_string( const Dec128Store *fp,  char *str );
@@ -32,6 +31,7 @@ void es_dec128_floor( Dec128Store *out,  const Dec128Store *l );
 void es_dec128_round( Dec128Store *out,  const Dec128Store *l );
 int es_dec128_isinf( const Dec128Store *fp );
 int es_dec128_isnan( const Dec128Store *fp );
+int es_dec128_compare( const Dec128Store *l, const Dec128Store *r );
 int es_dec128_eq( const Dec128Store *l, const Dec128Store *r );
 int es_dec128_lt( const Dec128Store *l, const Dec128Store *r );
 int es_dec128_gt( const Dec128Store *l, const Dec128Store *r );

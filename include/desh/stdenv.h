@@ -7,7 +7,9 @@ extern "C" {
 #endif
 
 #include <desh/esconfig.h>
+#ifndef __sun__
 #include <sys/cdefs.h>
+#endif
 
 /*
  * type qualifiers

@@ -76,6 +76,8 @@ warn( const char *s )
 extern "C" void
 sethistory( char *file )
 {
+  if ( tty != NULL )
+    lc_tty_open_history( tty, file );
   history_filename = file;
 }
 

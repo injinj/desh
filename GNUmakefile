@@ -1,6 +1,6 @@
 # defines a directory for build, for example, RH6_x86_64
-lsb_dist     := $(shell if [ -x /usr/bin/lsb_release ] ; then lsb_release -is ; else echo Linux ; fi)
-lsb_dist_ver := $(shell if [ -x /usr/bin/lsb_release ] ; then lsb_release -rs | sed 's/[.].*//' ; fi)
+lsb_dist     := $(shell if [ -x /usr/bin/lsb_release ] ; then lsb_release -is ; else uname -s ; fi)
+lsb_dist_ver := $(shell if [ -x /usr/bin/lsb_release ] ; then lsb_release -rs | sed 's/[.].*//' ; else uname -r | sed 's/[-].*//' ; fi)
 uname_m      := $(shell uname -m)
 
 short_dist_lc := $(patsubst CentOS,rh,$(patsubst RedHatEnterprise,rh,\
@@ -203,11 +203,16 @@ $(dependd)/depend.make: $(dependd) $(all_depends)
 	@echo "# depend file" > $(dependd)/depend.make
 	@cat $(all_depends) >> $(dependd)/depend.make
 
+ifeq (SunOS,$(lsb_dist))
+remove_rpath = rpath -r
+else
+remove_rpath = chrpath -d
+endif
 # remove the relative link run paths
 .PHONY: dist_bins
 dist_bins: all
-	chrpath -d $(libd)/libdesh.so
-	chrpath -d $(bind)/desh
+	$(remove_rpath) $(libd)/libdesh.so
+	$(remove_rpath) $(bind)/desh
 
 .PHONY: dist_rpm
 dist_rpm: srpm
@@ -218,22 +223,24 @@ dist_rpm: srpm
 
 ifeq ($(DESTDIR),)
 # 'sudo make install' puts things in /usr/local/lib, /usr/local/include
-install_prefix = /usr/local
+install_prefix ?= /usr/local
 else
 # debuild uses DESTDIR to put things into debian/libdecnumber/usr
 install_prefix = $(DESTDIR)/usr
 endif
+# this should be 64 for rpm based, /64 for SunOS
+install_lib_suffix ?=
 
 install: dist_bins
-	install -d $(install_prefix)/lib $(install_prefix)/bin
+	install -d $(install_prefix)/lib$(install_lib_suffix) $(install_prefix)/bin
 	install -d $(install_prefix)/include/desh
 	install -d $(install_prefix)/share/man/man1
 	install -d $(install_prefix)/share/doc/desh
 	for f in $(libd)/libdesh.* ; do \
 	if [ -h $$f ] ; then \
-	cp -a $$f $(install_prefix)/lib ; \
+	cp -a $$f $(install_prefix)/lib$(install_lib_suffix) ; \
 	else \
-	install $$f $(install_prefix)/lib ; \
+	install $$f $(install_prefix)/lib$(install_lib_suffix) ; \
 	fi ; \
 	done
 	install $(bind)/desh $(install_prefix)/bin
