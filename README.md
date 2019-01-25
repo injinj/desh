@@ -162,6 +162,39 @@ I know at least these will work,  CentOS 6 does not work without adding utf-32
 glibc support for linecook.  That shouldn't be terribly difficult, but I don't
 have a reason for that port.
 
+Notes for the SunOS 5.11 port.  I used gcc-7 and I have /usr/gnu/bin in my
+PATH.  Set CC=gcc, cc is not an alias for gcc. I needed to make pcre2, the
+standard package does not include libpcre2-32.  That requires gnu autotools and
+friends.  I also needed rpath to remove the library run paths.  The libraries
+live in /usr/lib/64, the runtime linker uses /usr/lib for 32 bit libraries.
+
+```console
+$ git clone https://github.com/luvit/pcre2
+$ cd pcre2
+$ configure --enable-pcre2-16 --enable-pcre2-32 --prefix=/usr
+$ make
+$ make install  # as su
+# manually mv things from /usr/lib into /usr/lib/64 and change the pkgconfig
+$ wget http://www.linker-aliens.org/blogs/ali/entry/changing_elf_runpaths/resource/rpath.tgz
+$ tar xvzf rpath.tgz
+$ cd rpath ; make
+$ cp rpath /usr/bin/rpath             # as su
+$ cp cp rpath.1 /usr/share/man/man1/  # as su
+$ git clone https://github.com/injinj/desh
+$ cd desh
+$ git submodule update --init --recursive
+$ cd libdecnumber
+$ make
+$ make install_prefix=/usr install_lib_suffix=/64 install  # as su
+$ cd ../linecook
+$ make
+$ make install_prefix=/usr install_lib_suffix=/64 install  # as su
+$ cd ..
+$ make
+$ make install_prefix=/usr install_lib_suffix=/64 install  # as su
+$ cp /usr/share/doc/desh/deshrc /etc/deshrc
+```
+
 Make sure to set the TERM env var to one with colors, where 'tput colors'
 returns >= 8.  With xterm, I add this to my <b>~/.Xresources</b>:
 
