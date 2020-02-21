@@ -1,4 +1,5 @@
 /* main.c -- initialization for es ($Revision: 1.3 $) */
+#define _GNU_SOURCE
 
 #include <desh/es.h>
 #include <desh/input.h>

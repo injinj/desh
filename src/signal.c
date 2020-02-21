@@ -1,4 +1,5 @@
 /* signal.c -- signal handling ($Revision: 1.1.1.1 $) */
+#define _GNU_SOURCE
 
 #include <desh/es.h>
 #include <desh/sigmsgs.h>

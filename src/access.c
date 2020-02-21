@@ -1,4 +1,5 @@
 /* access.c -- access testing and path searching ($Revision: 1.2 $) */
+#define _GNU_SOURCE
 
 #define	REQUIRE_STAT	1
 #define	REQUIRE_PARAM	1

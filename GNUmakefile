@@ -25,11 +25,12 @@ endif
 
 CC          ?= gcc
 CXX         ?= g++
-cc          := $(CC)
+cc          := $(CC) -std=c11
 cpp         := $(CXX)
-cppflags    := -fno-rtti -fno-exceptions
+#cppflags    := -fno-rtti -fno-exceptions
+cppflags    := -std=c++11
 arch_cflags := -fno-omit-frame-pointer
-cpplink     := $(CC)
+cpplink     := $(CXX)
 gcc_wflags  := -Wall -Werror
 fpicflags   := -fPIC
 soflag      := -shared
@@ -162,7 +163,7 @@ src/sigmsgs.c: $(bind)/mksignal
 	$(bind)/mksignal > src/sigmsgs.c
 
 esdump_objs := $(objd)/dump.o $(objd)/main.o $(common_objs) 
-esdump_lnk  := $(lnk_lib)
+esdump_lnk  := $(dlnk_lib)
 $(bind)/esdump: $(esdump_objs) $(lc_lib) $(dec_lib)
 mksignal_objs := $(objd)/mksignal.o
 $(bind)/mksignal: $(mksignal_objs)
@@ -278,19 +279,19 @@ $(bind)/%:
 	$(cpplink) $(cflags) $(rpath) -o $@ $($(*)_objs) -L$(libd) $($(*)_lnk) $(cpp_lnk) $(sock_lib) $(math_lib) $(thread_lib) $(malloc_lib) $(dynlink_lib)
 
 $(dependd)/%.d: src/%.cpp
-	$(cc) -x c++ $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).o -MF $@
+	$(cpp) $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).o -MF $@
 
 $(dependd)/%.d: src/%.c
 	$(cc) $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).o -MF $@
 
 $(dependd)/%.fpic.d: src/%.cpp
-	$(cc) -x c++ $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).fpic.o -MF $@
+	$(cpp) $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).fpic.o -MF $@
 
 $(dependd)/%.fpic.d: src/%.c
 	$(cc) $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).fpic.o -MF $@
 
 $(dependd)/%.d: test/%.cpp
-	$(cc) -x c++ $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).o -MF $@
+	$(cpp) $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).o -MF $@
 
 $(dependd)/%.d: test/%.c
 	$(cc) $(arch_cflags) $(defines) $(includes) $($(notdir $*)_includes) $($(notdir $*)_defines) -MM $< -MT $(objd)/$(*).o -MF $@

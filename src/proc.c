@@ -1,4 +1,5 @@
 /* proc.c -- process control system calls ($Revision: 1.2 $) */
+#define _GNU_SOURCE
 
 #include <desh/es.h>
 #include <desh/term.h>
