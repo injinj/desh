@@ -56,6 +56,8 @@ I made a asciicast for a quick tour of the features here:
 
 ### Making desh
 
+#### CentOS & Fedora install
+
 This project uses a makefile so make will build everything.  It needs gcc-c++,
 byacc and the git submodules.  I'm using Fedora 27 below.
 
@@ -109,6 +111,8 @@ Uninstalling the rpms is with the -e option:
 $ sudo rpm -e linecook libdecnumber desh
 ```
 
+#### Debian & Ubuntu install
+
 For Debian based, there is a dist_dpkg target, which will create a debian
 package.
 
@@ -129,6 +133,8 @@ Uninstalling dpkgs:
 ```console
 $ sudo dpkg -r linecook libdecnumber desh
 ```
+
+#### Ubuntu under Windows 10 install
 
 For Ubuntu 18.04 under Windows 10, this build works for me:
 
@@ -161,6 +167,8 @@ I've also built CentOS 7, Fedora 27, Fedora 28, Fedora 29, Debian 9 x86_64, so
 I know at least these will work,  CentOS 6 does not work without adding utf-32
 glibc support for linecook.  That shouldn't be terribly difficult, but I don't
 have a reason for that port.
+
+#### Solaris 11 install
 
 Notes for the SunOS 5.11 port.  I used gcc-7 and I have /usr/gnu/bin in my
 PATH.  Set CC=gcc, cc is not an alias for gcc. I needed to make pcre2, the
@@ -195,8 +203,10 @@ $ make install_prefix=/usr install_lib_suffix=/64 install  # as su
 $ cp /usr/share/doc/desh/deshrc /etc/deshrc
 ```
 
-Notes for the Mac port.  I used clang from `xcode-select --install` and installed pcre2,
-linecook, libdecnumber to '/usr/local':
+#### Apple Mac install
+
+Notes for the Mac port.  I used clang from `xcode-select --install` and
+installed pcre2, linecook, libdecnumber to '/usr/local':
 
 ```console
 $ curl -O https://ftp.pcre.org/pub/pcre/pcre2-10.35.tar.gz
