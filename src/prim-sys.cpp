@@ -299,7 +299,7 @@ prim_limit( List *list, Binding *binding, int evalflags )
   else {
     char *name = getstr( lp.ptr->term );
     for ( ;; lim++ ) {
-      if ( lim->name == NULL )
+      if ( lim->suffix == NULL )
         fail( "$&limit", "%s: no such limit", name );
       if ( streq( name, lim->name ) )
         break;

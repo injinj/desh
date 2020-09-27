@@ -23,7 +23,6 @@ extern "C" {
 #endif
 #endif
 
-
 /*
  * protect the rest of es source from the dance of the includes
  */
@@ -70,11 +69,7 @@ typedef struct dirent Dirent;
 #include <sys/wait.h>
 
 /* stdlib */
-#if __GNUC__
-typedef volatile void noreturn;
-#else
 typedef void noreturn;
-#endif
 
 #include <stdlib.h>
 
