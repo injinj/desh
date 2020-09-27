@@ -15,10 +15,12 @@ extern "C" {
  * type qualifiers
  */
 
+#if 0
 #if !USE_VOLATILE
 # ifndef volatile
 #  define volatile
 # endif
+#endif
 #endif
 
 
