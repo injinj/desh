@@ -41,6 +41,12 @@ fpicflags   := -fPIC
 soflag      := -shared
 rpath1      := -Wl,-rpath,$(pwd)/$(libd)
 
+ifeq (Darwin,$(lsb_dist))
+dll         := dylib
+else
+dll         := so
+endif
+
 ifdef DEBUG
 default_cflags := -ggdb
 else
@@ -61,11 +67,11 @@ defines     := $(DEFINES)
 cpp_lnk     :=
 sock_lib    :=
 math_lib    := -lm
-thread_lib  := -pthread -lrt
+#thread_lib  := -pthread -lrt
 
 # test submodules exist (they don't exist for dist_rpm, dist_dpkg targets)
-have_lc_submodule  := $(shell if [ -d ./linecook ]; then echo yes; else echo no; fi )
-have_dec_submodule := $(shell if [ -d ./libdecnumber ]; then echo yes; else echo no; fi )
+have_lc_submodule  := $(shell if [ -f ./linecook/GNUmakefile ]; then echo yes; else echo no; fi )
+have_dec_submodule := $(shell if [ -f ./libdecnumber/GNUmakefile ]; then echo yes; else echo no; fi )
 
 lnk_lib     :=
 dlnk_lib    :=
@@ -140,19 +146,20 @@ common_dbjs := $(addprefix $(objd)/, $(addsuffix .fpic.o, $(common_files)))
 all_depends += $(addprefix $(dependd)/, $(addsuffix .d, $(all_files)))
 all_depends += $(addprefix $(dependd)/, $(addsuffix .fpic.d, $(all_files)))
 
-libdesh_objs := $(objd)/initial.o $(common_objs)
-libdesh_dbjs := $(objd)/initial.fpic.o $(common_dbjs)
-libdesh_dlnk := $(dlnk_lib)
-libdesh_spec := $(version)-$(build_num)
-libdesh_ver  := $(major_num).$(minor_num)
+libdesh_objs  := $(objd)/initial.o $(common_objs)
+libdesh_dbjs  := $(objd)/initial.fpic.o $(common_dbjs)
+libdesh_dlnk  := $(dlnk_lib)
+libdesh_spec  := $(version)-$(build_num)
+libdesh_dylib := $(version).$(build_num)
+libdesh_ver   := $(major_num).$(minor_num)
 
 $(libd)/libdesh.a: $(libdesh_objs)
-$(libd)/libdesh.so: $(libdesh_dbjs)
+$(libd)/libdesh.$(dll): $(libdesh_dbjs)
 
-all_libs += $(libd)/libdesh.a $(libd)/libdesh.so
+all_libs += $(libd)/libdesh.a $(libd)/libdesh.$(dll)
 
 desh_objs := $(objd)/main.fpic.o
-desh_libs := $(libd)/libdesh.so
+desh_libs := $(libd)/libdesh.$(dll)
 desh_lnk  := -ldesh $(dlnk_lib)
 $(bind)/desh: $(desh_objs) $(desh_libs)
 
@@ -184,7 +191,7 @@ gen_files += src/initial.c src/sigmsgs.c src/y.tab.c include/desh/token.h
 all: $(gen_files) $(all_libs) $(all_exes)
 
 # create directories
-$(dependd):
+$(dependd): include/desh/token.h
 	@mkdir -p $(all_dirs)
 
 # remove target bins, objs, depends
@@ -212,12 +219,16 @@ $(dependd)/depend.make: $(dependd) $(all_depends)
 ifeq (SunOS,$(lsb_dist))
 remove_rpath = rpath -r
 else
+ifeq (Darwin,$(lsb_dist))
+remove_rpath = true
+else
 remove_rpath = chrpath -d
+endif
 endif
 # remove the relative link run paths
 .PHONY: dist_bins
 dist_bins: all
-	$(remove_rpath) $(libd)/libdesh.so
+	$(remove_rpath) $(libd)/libdesh.$(dll)
 	$(remove_rpath) $(bind)/desh
 
 .PHONY: dist_rpm
@@ -279,6 +290,10 @@ $(libd)/%.a:
 $(libd)/%.so:
 	$(cpplink) $(soflag) $(rpath) $(cflags) -o $@.$($(*)_spec) -Wl,-soname=$(@F).$($(*)_ver) $($(*)_dbjs) $($(*)_dlnk) $(cpp_dll_lnk) $(sock_lib) $(math_lib) $(thread_lib) $(malloc_lib) $(dynlink_lib) && \
 	cd $(libd) && ln -f -s $(@F).$($(*)_spec) $(@F).$($(*)_ver) && ln -f -s $(@F).$($(*)_ver) $(@F)
+
+$(libd)/%.dylib:
+	$(cpplink) -dynamiclib $(cflags) -o $@.$($(*)_dylib).dylib -current_version $($(*)_dylib) -compatibility_version $($(*)_ver) $($(*)_dbjs) $($(*)_dlnk) $(cpp_dll_lnk) $(sock_lib) $(math_lib) $(thread_lib) $(malloc_lib) $(dynlink_lib) && \
+	cd $(libd) && ln -f -s $(@F).$($(*)_dylib).dylib $(@F).$($(*)_ver).dylib && ln -f -s $(@F).$($(*)_ver).dylib $(@F)
 
 $(bind)/%:
 	$(cpplink) $(cflags) $(rpath) -o $@ $($(*)_objs) -L$(libd) $($(*)_lnk) $(cpp_lnk) $(sock_lib) $(math_lib) $(thread_lib) $(malloc_lib) $(dynlink_lib)

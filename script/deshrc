@@ -205,6 +205,19 @@ if {~ $osdist 'Fedora'} {
   os_container_string = 'SUN' ^ $osver
 } {~ $osdist 'Linux'} {
   os_container_string = 'LI' ^ $osver
+} {~ $osdist 'Darwin'} {
+  os_container_string = 'Apple'
+}
+
+if {$howmanycolors :ge 8} {
+  if {~ $osdist 'Darwin'} {
+    imply ls -aFC
+  } {
+    # use ls colors
+    imply ls '--color=auto' -aFC
+    # use grep colors
+    imply grep '--color=auto'
+  }
 }
 
 fn git_branch_decoder {
@@ -439,13 +452,6 @@ fn update_prompt_git_status {
 }
 
 update_prompt_git_status
-
-if {$howmanycolors :ge 8} {
-  # use ls colors
-  imply ls '--color=auto' -aFC
-  # use grep colors
-  imply grep '--color=auto'
-}
 
 #
 # shorten pwd to ~/dir if inside home

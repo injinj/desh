@@ -195,6 +195,32 @@ $ make install_prefix=/usr install_lib_suffix=/64 install  # as su
 $ cp /usr/share/doc/desh/deshrc /etc/deshrc
 ```
 
+Notes for the Mac port.  I used clang from `xcode-select --install` and installed pcre2,
+linecook, libdecnumber to '/usr/local':
+
+```console
+$ curl -O https://ftp.pcre.org/pub/pcre/pcre2-10.35.tar.gz
+$ tar xvzf pcre2-10.35.tar.gz
+$ cd pcre2-10.35
+$ sh configure --enable-pcre2-16 --enable-pcre2-32
+$ make
+$ sudo make install
+$ git clone https://github.com/raitechnology/libdecnumber
+$ cd libdecnumber
+$ make ; sudo make install
+$ cd ..
+$ git clone https://github.com/injinj/linecook
+$ cd linecook
+$ make ; sudo make install
+$ cd ..
+$ git clone https://github.com/injinj/desh
+$ cd desh
+$ make ; sudo make install
+$ sudo cp -a /usr/local/share/doc/desh/deshrc /etc/deshrc
+$ sudo sh -c 'echo /usr/local/bin/desh >> /etc/shells'
+$ chsh -s /usr/local/bin/desh
+```
+
 Make sure to set the TERM env var to one with colors, where 'tput colors'
 returns >= 8.  With xterm, I add this to my <b>~/.Xresources</b>:
 

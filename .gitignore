@@ -6,6 +6,7 @@
 /UB*
 /DEB*
 /SUN*
+/DAR*
 # history files
 .*history
 # vim swap files

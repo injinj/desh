@@ -311,8 +311,7 @@ prim_limit( List *list, Binding *binding, int evalflags )
       rlim_t        n;
       struct rlimit rlim;
       getrlimit( lim->flag, &rlim );
-      if ( ( n = parselimit( lim, getstr( lp.ptr->term ) ) ) < 0 )
-        fail( "$&limit", "%s: bad limit value", getstr( lp.ptr->term ) );
+      n = parselimit( lim, getstr( lp.ptr->term ) );
       if ( hard )
         rlim.rlim_max = n;
       else

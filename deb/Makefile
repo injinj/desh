@@ -1,5 +1,10 @@
-
+# darwin's date doesn't like -R
+ifneq (Darwin,$(lsb_dist))
 debdate  := $(shell date -R)
+else
+debdate  := helloworld
+endif
+
 debbuild := dpkgbuild/$(name_ver)
 debian   := dpkgbuild/$(name_ver)/debian
 origtgz  := $(name)_$(version).orig.tar.gz

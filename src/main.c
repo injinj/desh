@@ -4,6 +4,11 @@
 #include <desh/es.h>
 #include <desh/input.h>
 #include <locale.h>
+#if defined(__has_include)
+#if __has_include(<xlocale.h>)
+#include <xlocale.h>
+#endif
+#endif
 
 #if GCVERBOSE
 Boolean gcverbose	= FALSE;	/* -G */
