@@ -37,7 +37,7 @@ const char non_word[] = {
   1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, /*   0 -  15 */
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /*  16 -  31 */
 /*   !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  */
-  1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, /* ' ' - '/' */
+  1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, /* ' ' - '/' */
 /*0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?  */
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, /* '0' - '?' */
 /*@  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  */
@@ -88,7 +88,7 @@ const char argument_non_word[] = {
   1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, /*   0 -  15 */
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /*  16 -  31 */
 /*   !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  */
-  1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, /* ' ' - '/' */
+  1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, /* ' ' - '/' */
 /*0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?  */
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, /* '0' - '?' */
 /*@  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  */
@@ -193,7 +193,8 @@ yylex( void )
   const char * cmd;
   int          fd[ 2 ],
                pipe[ 2 ],
-               c;
+               c,
+               quote;
   size_t       i;    /* The purpose of all these local assignments is to	*/
   const char * meta; /* allow optimizing compilers like gcc to load these
                         */
@@ -280,7 +281,7 @@ interactive_ctrl_c:
     y->str = gcdup( buf );
     return WORD;
   }
-  if ( c == '`' || c == '!' || c == '$' || c == '\'' ) {
+  if ( c == '`' || c == '!' || c == '$' || c == '\'' || c == '"' ) {
     InsertFreeCaret();
     if ( c == '!' )
       w = STATE_KEY_WORD;
@@ -304,11 +305,13 @@ interactive_ctrl_c:
       }
 
     case '\'':
+    case '"':
+      quote = c;
       w = STATE_REAL_WORD;
       i = 0;
       for (;;) {
-        if ( ( c = GETC() ) == '\'' ) {
-          if ( ( c = GETC() ) != '\'' ) { /* double quote '' escape */
+        if ( ( c = GETC() ) == quote ) {
+          if ( ( c = GETC() ) != quote ) { /* double quote '' escape */
             UNGETC( c );
             break;           /* end of string */
           }
@@ -319,7 +322,7 @@ interactive_ctrl_c:
             print_prompt2();
             continue;
           }
-          if ( c != '\'' ) { /* \' == ' escaping quote */
+          if ( c != quote ) { /* \' == ' escaping quote */
             UNGETC( c );
             c = '\\';        /* otherwise literal \ */
           }
