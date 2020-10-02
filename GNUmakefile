@@ -190,9 +190,12 @@ gen_files += src/initial.c src/sigmsgs.c src/y.tab.c include/desh/token.h
 .PHONY: all
 all: $(gen_files) $(all_libs) $(all_exes)
 
-# create directories
-$(dependd): include/desh/token.h
+.PHONY: make_dirs
+make_dirs:
 	@mkdir -p $(all_dirs)
+
+# create directories
+$(dependd): make_dirs include/desh/token.h
 
 # remove target bins, objs, depends
 .PHONY: clean
